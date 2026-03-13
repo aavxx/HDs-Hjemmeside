@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import hdLogo from "@/assets/hd-logo.svg";
+import ChatBot from "@/components/ChatBot";
 
 const navItems = [
   { path: "/", label: "Hjem" },
@@ -145,6 +146,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </footer>
+      <ChatBot />
     </div>
   );
 };

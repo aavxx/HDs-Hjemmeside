@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 interface Product {
@@ -42,17 +42,24 @@ const Bestilling = () => {
   };
 
   const inputClass =
-    "w-full bg-card border border-border px-4 py-3 text-sm font-body text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-foreground transition-colors";
-  const labelClass = "block text-sm font-body font-medium text-foreground mb-1.5";
+    "w-full bg-card border border-border px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/30 transition-all duration-300";
+  const labelClass = "block text-sm font-medium text-foreground mb-2";
 
   return (
-    <section className="container py-16 md:py-24 max-w-2xl">
-      <div className="animate-fade-in">
-        <h1 className="font-display text-4xl md:text-5xl font-light text-foreground mb-3">
-          Bestilling
-        </h1>
-        <p className="text-muted-foreground font-body mb-10 leading-relaxed">
-          Udfyld formularen herunder for at bestille dit eget unikke stykke keramik.
+    <section className="container py-20 md:py-28 max-w-2xl">
+      <div className="stagger-children space-y-10">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-medium mb-3">
+            Bestilling
+          </p>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+            Bestil keramik
+          </h1>
+        </div>
+        <div className="w-12 h-[2px] bg-foreground line-reveal" />
+        <p className="text-muted-foreground leading-relaxed">
+          Udfyld formularen herunder for at bestille dit eget unikke stykke
+          keramik.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -94,32 +101,34 @@ const Bestilling = () => {
 
           {/* Products */}
           <div className="space-y-6">
-            <h2 className="font-display text-2xl font-light text-foreground">
+            <h2 className="text-2xl font-semibold text-foreground">
               Produkter
             </h2>
 
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="border border-border p-6 space-y-4 bg-card relative"
+                className="border border-border p-6 space-y-4 bg-card relative hover-lift animate-fade-in"
               >
                 {products.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeProduct(product.id)}
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-destructive transition-colors"
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-destructive transition-colors duration-300"
                     aria-label="Fjern produkt"
                   >
                     <Trash2 size={16} />
                   </button>
                 )}
 
-                <p className="text-xs text-muted-foreground font-body tracking-wide uppercase">
+                <p className="text-xs text-muted-foreground tracking-[0.2em] uppercase font-medium">
                   Produkt {index + 1}
                 </p>
 
                 <div>
-                  <label className={labelClass}>Form — Hvilken form skal det være?</label>
+                  <label className={labelClass}>
+                    Form — Hvilken form skal det være?
+                  </label>
                   <input
                     type="text"
                     required
@@ -166,18 +175,25 @@ const Bestilling = () => {
             <button
               type="button"
               onClick={addProduct}
-              className="flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-300 group"
             >
-              <Plus size={16} />
+              <Plus
+                size={16}
+                className="transition-transform duration-300 group-hover:rotate-90"
+              />
               Tilføj endnu et produkt
             </button>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-primary text-primary-foreground py-3.5 text-sm font-body tracking-wide hover:opacity-90 transition-opacity"
+            className="group w-full bg-primary text-primary-foreground py-4 text-sm font-medium tracking-wide hover-lift inline-flex items-center justify-center gap-2"
           >
             Send bestilling
+            <ArrowRight
+              size={16}
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
           </button>
         </form>
       </div>

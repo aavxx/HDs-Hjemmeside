@@ -147,7 +147,7 @@ const ChatBot = () => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-primary text-primary-foreground">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-primary-foreground/70 animate-pulse" />
             <span className="font-medium text-sm tracking-wide">HD Keramik Assistent</span>
           </div>
           <button

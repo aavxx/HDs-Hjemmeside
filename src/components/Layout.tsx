@@ -8,7 +8,7 @@ const navItems = [
   { path: "/", label: "Hjem" },
   { path: "/om-mig", label: "Om Mig" },
   { path: "/kontakt", label: "Kontakt" },
-];
+] as const;
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();

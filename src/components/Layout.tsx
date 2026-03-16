@@ -146,7 +146,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </footer>
-      <ChatBot />
+      
     </div>
   );
 };

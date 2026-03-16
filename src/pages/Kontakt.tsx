@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, MessageCircle, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -139,21 +139,6 @@ const Kontakt = () => {
             )}
           </button>
         </form>
-
-        <div className="border border-border bg-card p-6 flex items-start gap-4 hover-lift">
-          <div className="p-2.5 bg-muted rounded-full shrink-0">
-            <MessageCircle size={18} className="text-foreground" />
-          </div>
-          <div>
-            <p className="font-medium text-foreground text-sm mb-1">
-              Brug for hurtigt svar?
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Du kan også stille spørgsmål til vores AI-assistent — du finder
-              den i nederste højre hjørne af siden.
-            </p>
-          </div>
-        </div>
       </div>
     </section>
   );

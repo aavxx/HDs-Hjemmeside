@@ -21,10 +21,10 @@ const Index = () => {
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
-                to="/bestilling"
+                to="/kontakt"
                 className="group inline-flex items-center gap-2 px-7 py-3.5 bg-primary text-primary-foreground text-sm font-medium tracking-wide hover-lift"
               >
-                Bestil keramik
+                Kontakt
                 <ArrowRight
                   size={16}
                   className="transition-transform duration-300 group-hover:translate-x-1"

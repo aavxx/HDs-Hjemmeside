@@ -2,12 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import hdLogo from "@/assets/hd-logo.svg";
-
+import NotificationBanner from "@/components/NotificationBanner";
 
 const navItems = [
   { path: "/", label: "Hjem" },
   { path: "/om-mig", label: "Om Mig" },
-  { path: "/bestilling", label: "Bestilling" },
   { path: "/kontakt", label: "Kontakt" },
 ];
 
@@ -22,13 +21,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menu on route change
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <NotificationBanner />
       <header
         className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
@@ -49,7 +48,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <li key={item.path}>
@@ -67,7 +65,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             ))}
           </ul>
 
-          {/* Mobile toggle */}
           <button
             className="md:hidden text-foreground p-2 -mr-2"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -90,7 +87,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </button>
         </nav>
 
-        {/* Mobile menu */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
             menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
@@ -146,7 +142,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </footer>
-      
     </div>
   );
 };

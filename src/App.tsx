@@ -5,8 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import OmMig from "./pages/OmMig";
-import Bestilling from "./pages/Bestilling";
 import Kontakt from "./pages/Kontakt";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,8 +20,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/om-mig" element={<OmMig />} />
-            <Route path="/bestilling" element={<Bestilling />} />
             <Route path="/kontakt" element={<Kontakt />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

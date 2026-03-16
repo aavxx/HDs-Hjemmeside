@@ -66,7 +66,7 @@ const Kontakt = () => {
   const errorClass = "text-xs text-destructive mt-1.5";
 
   const fields: { key: keyof typeof formData; label: string; placeholder: string; type?: string }[] = [
-    { key: "navn", label: "Navn", placeholder: "Dit navn" },
+    { key: "navn", label: "Navn", placeholder: "Dit fulde navn" },
     { key: "email", label: "E-mail", placeholder: "din@email.dk", type: "email" },
     { key: "emne", label: "Emne", placeholder: "Hvad handler din henvendelse om?" },
   ];

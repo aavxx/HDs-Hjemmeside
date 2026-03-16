@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,6 @@ serve(async (req) => {
   try {
     const { name, email, subject, message } = await req.json();
 
-    // Server-side validation
     const errors: Record<string, string> = {};
     if (!name || typeof name !== "string" || name.trim().length === 0) errors.name = "Name is required";
     if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Valid email is required";
@@ -26,8 +26,19 @@ serve(async (req) => {
       });
     }
 
-    // Log the contact form submission (you can extend this to send an actual email)
-    console.log("Contact form submission:", { name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() });
+    // Save to database
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    await supabase.from("contact_submissions").insert({
+      name: name.trim(),
+      email: email.trim(),
+      subject: subject.trim(),
+      message: message.trim(),
+    });
+
+    console.log("Contact form submission saved:", { name: name.trim(), email: email.trim(), subject: subject.trim() });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

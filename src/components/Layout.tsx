@@ -28,8 +28,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <NotificationBanner />
+
       <header
-        className={`sticky top-0 z-50 transition-all duration-500 ${
+        className={`sticky top-12 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-card/90 backdrop-blur-xl shadow-sm"
             : "bg-transparent"
@@ -41,7 +42,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               src={hdLogo}
               alt="HD Logo"
               className="h-8 md:h-10 transition-transform duration-300 group-hover:scale-105"
-              style={{ filter: "invert(6%) sepia(50%) saturate(6000%) hue-rotate(220deg) brightness(20%) contrast(95%)" }}
+              style={{
+                filter:
+                  "invert(6%) sepia(50%) saturate(6000%) hue-rotate(220deg) brightness(20%) contrast(95%)",
+              }}
             />
             <span className="text-lg md:text-xl font-semibold tracking-tight text-foreground">
               Henriette Duckert
@@ -97,7 +101,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <li
                 key={item.path}
                 style={{
-                  animation: menuOpen ? `staggerIn 0.4s cubic-bezier(0.22,1,0.36,1) ${i * 0.05}s forwards` : "none",
+                  animation: menuOpen
+                    ? `staggerIn 0.4s cubic-bezier(0.22,1,0.36,1) ${i * 0.05}s forwards`
+                    : "none",
                   opacity: menuOpen ? undefined : 0,
                 }}
               >

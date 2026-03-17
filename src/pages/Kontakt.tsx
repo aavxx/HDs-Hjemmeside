@@ -116,9 +116,11 @@ const Kontakt = () => {
           <div className="w-full aspect-[4/3] border border-border overflow-hidden">
             <iframe
               title="Kort over Fuglslev Bygade 5, 8400 Ebeltoft"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=10.625%2C56.335%2C10.645%2C56.345&layer=mapnik&marker=56.34%2C10.635"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2222.5!2d10.635!3d56.34!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x464dd7c0a5e3f3f1%3A0x0!2sFuglslev+Bygade+5%2C+8400+Ebeltoft!5e0!3m2!1sda!2sdk!4v1700000000000"
               className="w-full h-full border-0"
               loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
             />
           </div>
         </div>

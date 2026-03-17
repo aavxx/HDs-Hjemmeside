@@ -22,8 +22,10 @@ const NotificationBanner = () => {
         .select("id, message, expires_at")
         .eq("active", true)
         .order("created_at", { ascending: false });
+
       if (data) setNotifications(data as Notification[]);
     };
+
     fetchNotifications();
   }, []);
 
@@ -34,6 +36,7 @@ const NotificationBanner = () => {
   };
 
   const now = new Date();
+
   const visible = notifications.filter(
     (n) =>
       !dismissed.has(n.id) &&
@@ -43,11 +46,21 @@ const NotificationBanner = () => {
   if (visible.length === 0) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] w-full" style={{ backgroundColor: "#ffffb3" }}>
+    <div
+      className="fixed top-0 left-0 right-0 w-full z-[9999]"
+      style={{ backgroundColor: "#ffffb3" }}
+    >
       {visible.map((n) => (
-        <div key={n.id} className="container flex items-center gap-3 py-2.5 text-sm">
+        <div
+          key={n.id}
+          className="container flex items-center gap-3 py-2.5 text-sm"
+        >
           <AlertTriangle size={16} className="shrink-0 text-foreground/70" />
-          <p className="flex-1 text-foreground/80 font-medium">{n.message}</p>
+
+          <p className="flex-1 text-foreground/80 font-medium">
+            {n.message}
+          </p>
+
           <button
             onClick={() => dismiss(n.id)}
             className="shrink-0 p-1 text-foreground/50 hover:text-foreground transition-colors"

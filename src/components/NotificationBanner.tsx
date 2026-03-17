@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface Notification {
   id: string;
   message: string;
+  expires_at: string | null;
 }
 
 const NotificationBanner = () => {
@@ -15,15 +16,15 @@ const NotificationBanner = () => {
     const stored = localStorage.getItem("dismissed-notifications");
     if (stored) setDismissed(new Set(JSON.parse(stored)));
 
-    const fetch = async () => {
+    const fetchNotifications = async () => {
       const { data } = await supabase
         .from("site_notifications")
-        .select("id, message")
+        .select("id, message, expires_at")
         .eq("active", true)
         .order("created_at", { ascending: false });
-      if (data) setNotifications(data);
+      if (data) setNotifications(data as Notification[]);
     };
-    fetch();
+    fetchNotifications();
   }, []);
 
   const dismiss = (id: string) => {
@@ -32,11 +33,17 @@ const NotificationBanner = () => {
     localStorage.setItem("dismissed-notifications", JSON.stringify([...next]));
   };
 
-  const visible = notifications.filter((n) => !dismissed.has(n.id));
+  const now = new Date();
+  const visible = notifications.filter(
+    (n) =>
+      !dismissed.has(n.id) &&
+      (!n.expires_at || new Date(n.expires_at) > now)
+  );
+
   if (visible.length === 0) return null;
 
   return (
-    <div className="w-full" style={{ backgroundColor: "#ffffb3" }}>
+    <div className="fixed top-0 left-0 right-0 z-[60] w-full" style={{ backgroundColor: "#ffffb3" }}>
       {visible.map((n) => (
         <div key={n.id} className="container flex items-center gap-3 py-2.5 text-sm">
           <AlertTriangle size={16} className="shrink-0 text-foreground/70" />

@@ -24,23 +24,38 @@ const OmMig = () => {
           <div className="w-12 h-[2px] bg-foreground line-reveal" />
           <div className="space-y-5 text-muted-foreground leading-relaxed">
             <p>
-              Henriette Duckert er en passioneret keramiker, der arbejder fra
-              sit værksted med at skabe unikke, håndlavede stykker. Hver form
-              drejes omhyggeligt på drejebænken og dekoreres med
-              karakteristiske mønstre og farver.
+              Jeg hedder Henriette Duckert og arbejder med keramik som kunstnerisk
+              udtryk. Gennem mange år har jeg arbejdet med leret som materiale og
+              udforsket dets muligheder i både form, overflade og funktion.
+              Keramikken giver mig mulighed for at arbejde med hænderne og skabe
+              unikke værker, hvor håndværk og kunst mødes.
             </p>
             <p>
-              Med kærlighed til håndværket og øje for detaljen skaber Henriette
-              keramik, der forener funktion og æstetik — stykker der er lige så
-              smukke at se på, som de er rare at bruge i hverdagen.
+              Mit arbejde har gennem tiden været vist på en lang række udstillinger
+              i både Danmark og udlandet. Jeg har blandt andet deltaget i
+              udstillinger på Charlottenborgs Forårsudstilling, Kunstnernes
+              Sommerudstilling, Clay – Danmarks Keramikmuseum, samt i udstillinger
+              i blandt andet Japan, Sverige og Tyskland.
             </p>
             <p>
-              Hendes signaturstil er kendetegnet ved de ternet mønstre og
-              farverige kanter, der giver hvert stykke et legende og personligt
-              udtryk.
+              Jeg har også haft flere separatudstillinger, blandt andet på Huset i
+              Asnæs, Tranegården i Gentofte og Galleri Louis Borch &amp; Sohn i
+              Hamburg.
             </p>
-            <p className="text-sm italic text-muted-foreground/60">
-              Beskrivelsen opdateres snart med mere information.
+            <p>
+              Mine værker er gennem årene blevet indkøbt af både institutioner og
+              kunstforeninger, herunder Københavns Kulturfond, Silkeborg Kommune og
+              en række danske virksomheder og kunstforeninger.
+            </p>
+            <p>
+              Jeg er medlem af blandt andet Danske Kunsthåndværkere og Designere,
+              Lertøj Aarhus og Huset i Asnæs, og mit arbejde er omtalt i blandt
+              andet Weilbachs Kunstnerleksikon og Den Danske Tehistorie.
+            </p>
+            <p>
+              I mit arbejde søger jeg at forene det kunstneriske med det
+              håndværksmæssige, og jeg finder stor glæde i at skabe keramiske
+              værker, der både kan opleves visuelt og bruges i hverdagen.
             </p>
           </div>
         </div>

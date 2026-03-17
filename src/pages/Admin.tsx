@@ -17,6 +17,7 @@ interface SiteNotification {
   message: string;
   active: boolean;
   created_at: string;
+  expires_at: string | null;
 }
 
 const Admin = () => {
@@ -25,6 +26,7 @@ const Admin = () => {
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [notifications, setNotifications] = useState<SiteNotification[]>([]);
   const [newNotification, setNewNotification] = useState("");
+  const [expiryHours, setExpiryHours] = useState("24");
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState<ContactSubmission | null>(null);
 
@@ -64,13 +66,22 @@ const Admin = () => {
 
   const addNotification = async () => {
     if (!newNotification.trim()) return;
-    const { error } = await supabase.from("site_notifications").insert({ message: newNotification.trim() });
+    const hours = parseInt(expiryHours, 10);
+    const expiresAt = !isNaN(hours) && hours > 0
+      ? new Date(Date.now() + hours * 60 * 60 * 1000).toISOString()
+      : null;
+
+    const { error } = await supabase.from("site_notifications").insert({
+      message: newNotification.trim(),
+      expires_at: expiresAt,
+    } as any);
     if (error) {
       toast.error("Kunne ikke oprette notifikation");
       return;
     }
     toast.success("Notifikation oprettet");
     setNewNotification("");
+    setExpiryHours("24");
     fetchData();
   };
 
@@ -90,6 +101,9 @@ const Admin = () => {
       hour: "2-digit", minute: "2-digit",
     });
   };
+
+  const isExpired = (n: SiteNotification) =>
+    n.expires_at ? new Date(n.expires_at) < new Date() : false;
 
   if (!authenticated) {
     return (
@@ -134,19 +148,36 @@ const Admin = () => {
       {/* Notifications section */}
       <div className="mb-12">
         <h2 className="text-xl font-semibold text-foreground mb-4">Notifikationer</h2>
-        <div className="flex gap-3 mb-4">
+        <div className="space-y-3 mb-4">
           <input
             value={newNotification}
             onChange={(e) => setNewNotification(e.target.value)}
             placeholder="Skriv en ny notifikation..."
-            className="flex-1 bg-card border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+            className="w-full bg-card border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/10"
           />
-          <button
-            onClick={addNotification}
-            className="bg-primary text-primary-foreground px-5 py-3 text-sm font-medium inline-flex items-center gap-2"
-          >
-            <Plus size={14} /> Tilføj
-          </button>
+          <div className="flex gap-3 items-center">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">Udløber efter:</label>
+            <select
+              value={expiryHours}
+              onChange={(e) => setExpiryHours(e.target.value)}
+              className="bg-card border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/10"
+            >
+              <option value="1">1 time</option>
+              <option value="6">6 timer</option>
+              <option value="12">12 timer</option>
+              <option value="24">1 dag</option>
+              <option value="48">2 dage</option>
+              <option value="72">3 dage</option>
+              <option value="168">1 uge</option>
+              <option value="0">Aldrig</option>
+            </select>
+            <button
+              onClick={addNotification}
+              className="bg-primary text-primary-foreground px-5 py-2 text-sm font-medium inline-flex items-center gap-2"
+            >
+              <Plus size={14} /> Tilføj
+            </button>
+          </div>
         </div>
 
         {notifications.length === 0 ? (
@@ -154,16 +185,24 @@ const Admin = () => {
         ) : (
           <div className="space-y-2">
             {notifications.map((n) => (
-              <div key={n.id} className="flex items-center gap-3 border border-border bg-card p-3">
+              <div key={n.id} className={`flex items-center gap-3 border border-border bg-card p-3 ${isExpired(n) ? "opacity-50" : ""}`}>
                 <div className="flex-1">
                   <p className="text-sm text-foreground">{n.message}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{formatDate(n.created_at)}</p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                    <span>Oprettet: {formatDate(n.created_at)}</span>
+                    {n.expires_at && (
+                      <span className={isExpired(n) ? "text-destructive" : ""}>
+                        {isExpired(n) ? "Udløbet" : `Udløber: ${formatDate(n.expires_at)}`}
+                      </span>
+                    )}
+                    {!n.expires_at && <span>Udløber aldrig</span>}
+                  </div>
                 </div>
                 <button
                   onClick={() => toggleNotification(n.id, n.active)}
-                  className={`text-xs px-3 py-1 border ${n.active ? "border-green-300 text-green-700 bg-green-50" : "border-border text-muted-foreground"}`}
+                  className={`text-xs px-3 py-1 border ${n.active && !isExpired(n) ? "border-green-300 text-green-700 bg-green-50" : "border-border text-muted-foreground"}`}
                 >
-                  {n.active ? "Aktiv" : "Inaktiv"}
+                  {isExpired(n) ? "Udløbet" : n.active ? "Aktiv" : "Inaktiv"}
                 </button>
                 <button
                   onClick={() => deleteNotification(n.id)}

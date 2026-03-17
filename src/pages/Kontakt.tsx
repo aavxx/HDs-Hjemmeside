@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -72,73 +72,111 @@ const Kontakt = () => {
   ];
 
   return (
-    <section className="container py-20 md:py-28 max-w-2xl">
-      <div className="stagger-children space-y-10">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-medium mb-3">
-            Kontakt
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-            Skriv til os
-          </h1>
-        </div>
-        <div className="w-12 h-[2px] bg-foreground line-reveal" />
-        <p className="text-muted-foreground leading-relaxed">
-          Har du spørgsmål om keramik, bestillinger eller andet? Send en besked
-          herunder, så vender vi tilbage hurtigst muligt.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-          {fields.map(({ key, label, placeholder, type }) => (
-            <div key={key}>
-              <label className={labelClass}>{label}</label>
-              <input
-                type={type || "text"}
-                value={formData[key]}
-                onChange={(e) => {
-                  setFormData({ ...formData, [key]: e.target.value });
-                  if (errors[key]) setErrors({ ...errors, [key]: undefined });
-                }}
-                placeholder={placeholder}
-                className={`${inputClass}${errors[key] ? " border-destructive" : ""}`}
-              />
-              {errors[key] && <p className={errorClass}>{errors[key]}</p>}
-            </div>
-          ))}
-
+    <section className="container py-20 md:py-28">
+      <div className="grid md:grid-cols-2 gap-16">
+        {/* Left: Contact info + map */}
+        <div className="stagger-children space-y-10">
           <div>
-            <label className={labelClass}>Besked</label>
-            <textarea
-              value={formData.besked}
-              onChange={(e) => {
-                setFormData({ ...formData, besked: e.target.value });
-                if (errors.besked) setErrors({ ...errors, besked: undefined });
-              }}
-              placeholder="Skriv din besked her..."
-              rows={5}
-              className={`${inputClass} resize-none${errors.besked ? " border-destructive" : ""}`}
-            />
-            {errors.besked && <p className={errorClass}>{errors.besked}</p>}
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-medium mb-3">
+              Kontakt
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              Skriv til os
+            </h1>
+          </div>
+          <div className="w-12 h-[2px] bg-foreground line-reveal" />
+          <p className="text-muted-foreground leading-relaxed">
+            Har du spørgsmål om keramik, bestillinger eller andet? Send en besked
+            herunder, så vender vi tilbage hurtigst muligt.
+          </p>
+
+          <div className="space-y-6">
+            <div className="flex items-start gap-3">
+              <MapPin size={18} className="shrink-0 text-foreground/70 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Adresse</p>
+                <p className="text-sm text-muted-foreground">Fuglslev Bygade 5</p>
+                <p className="text-sm text-muted-foreground">8400 Ebeltoft</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Phone size={18} className="shrink-0 text-foreground/70 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Telefon</p>
+                <a
+                  href="tel:+4520456637"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  +45 20 45 66 37
+                </a>
+              </div>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="group w-full bg-primary text-primary-foreground py-4 text-sm font-medium tracking-wide hover-lift inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            {isSubmitting ? (
-              <>
-                Sender...
-                <Loader2 size={16} className="animate-spin" />
-              </>
-            ) : (
-              <>
-                Send besked
-                <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
-              </>
-            )}
-          </button>
-        </form>
+          <div className="w-full aspect-[4/3] border border-border overflow-hidden">
+            <iframe
+              title="Kort over Fuglslev Bygade 5, 8400 Ebeltoft"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=10.625%2C56.335%2C10.645%2C56.345&layer=mapnik&marker=56.34%2C10.635"
+              className="w-full h-full border-0"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        {/* Right: Form */}
+        <div className="stagger-children space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            {fields.map(({ key, label, placeholder, type }) => (
+              <div key={key}>
+                <label className={labelClass}>{label}</label>
+                <input
+                  type={type || "text"}
+                  value={formData[key]}
+                  onChange={(e) => {
+                    setFormData({ ...formData, [key]: e.target.value });
+                    if (errors[key]) setErrors({ ...errors, [key]: undefined });
+                  }}
+                  placeholder={placeholder}
+                  className={`${inputClass}${errors[key] ? " border-destructive" : ""}`}
+                />
+                {errors[key] && <p className={errorClass}>{errors[key]}</p>}
+              </div>
+            ))}
+
+            <div>
+              <label className={labelClass}>Besked</label>
+              <textarea
+                value={formData.besked}
+                onChange={(e) => {
+                  setFormData({ ...formData, besked: e.target.value });
+                  if (errors.besked) setErrors({ ...errors, besked: undefined });
+                }}
+                placeholder="Skriv din besked her..."
+                rows={5}
+                className={`${inputClass} resize-none${errors.besked ? " border-destructive" : ""}`}
+              />
+              {errors.besked && <p className={errorClass}>{errors.besked}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group w-full bg-primary text-primary-foreground py-4 text-sm font-medium tracking-wide hover-lift inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {isSubmitting ? (
+                <>
+                  Sender...
+                  <Loader2 size={16} className="animate-spin" />
+                </>
+              ) : (
+                <>
+                  Send besked
+                  <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </section>
   );

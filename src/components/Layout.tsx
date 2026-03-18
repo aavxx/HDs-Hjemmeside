@@ -121,6 +121,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </ul>
         </div>
       </header>
+      </div>
 
       <main className="flex-1">
         <div key={location.pathname} className="page-transition">

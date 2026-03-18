@@ -33,7 +33,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         }`}
       >
         <NotificationBanner />
-        <nav className="container flex items-center justify-between h-16 md:h-20">
+        <nav className="container flex items-center justify-between h-16 md:h-20 bg-background">
           <Link to="/" className="flex items-center gap-3 group">
             <img
               src={hdLogo}

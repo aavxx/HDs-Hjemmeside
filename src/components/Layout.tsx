@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import hdLogo from "@/assets/hd-logo.svg";
 import NotificationBanner from "@/components/NotificationBanner";
@@ -14,9 +14,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [bannerHeight, setBannerHeight] = useState(0);
-
-  const handleBannerHeight = useCallback((h: number) => setBannerHeight(h), []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -30,16 +27,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <NotificationBanner onHeightChange={handleBannerHeight} />
-      <div style={{ height: bannerHeight }} />
+      <NotificationBanner />
 
       <header
-        className={`sticky z-50 transition-all duration-500 ${
+        className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-card/90 backdrop-blur-xl shadow-sm"
             : "bg-transparent"
         }`}
-        style={{ top: bannerHeight }}
       >
         <nav className="container flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-3 group">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,14 +8,9 @@ interface Notification {
   expires_at: string | null;
 }
 
-interface NotificationBannerProps {
-  onHeightChange?: (height: number) => void;
-}
-
-const NotificationBanner = ({ onHeightChange }: NotificationBannerProps) => {
+const NotificationBanner = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("dismissed-notifications");
@@ -34,6 +29,12 @@ const NotificationBanner = ({ onHeightChange }: NotificationBannerProps) => {
     fetchNotifications();
   }, []);
 
+  const dismiss = (id: string) => {
+    const next = new Set(dismissed).add(id);
+    setDismissed(next);
+    localStorage.setItem("dismissed-notifications", JSON.stringify([...next]));
+  };
+
   const now = new Date();
   const visible = notifications.filter(
     (n) =>
@@ -41,32 +42,11 @@ const NotificationBanner = ({ onHeightChange }: NotificationBannerProps) => {
       (!n.expires_at || new Date(n.expires_at) > now)
   );
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) {
-      onHeightChange?.(0);
-      return;
-    }
-    const ro = new ResizeObserver(() => {
-      onHeightChange?.(el.offsetHeight);
-    });
-    ro.observe(el);
-    onHeightChange?.(el.offsetHeight);
-    return () => ro.disconnect();
-  }, [visible.length, onHeightChange]);
-
-  const dismiss = (id: string) => {
-    const next = new Set(dismissed).add(id);
-    setDismissed(next);
-    localStorage.setItem("dismissed-notifications", JSON.stringify([...next]));
-  };
-
   if (visible.length === 0) return null;
 
   return (
     <div
-      ref={ref}
-      className="fixed top-0 left-0 right-0 w-full z-[9999]"
+      className="sticky top-0 left-0 right-0 w-full z-[9999]"
       style={{ backgroundColor: "#ffffb3" }}
     >
       {visible.map((n) => (

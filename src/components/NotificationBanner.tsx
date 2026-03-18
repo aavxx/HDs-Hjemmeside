@@ -42,7 +42,17 @@ const NotificationBanner = ({ onHeightChange }: NotificationBannerProps) => {
   );
 
   useEffect(() => {
-    onHeightChange?.(visible.length > 0 ? (ref.current?.offsetHeight ?? 0) : 0);
+    const el = ref.current;
+    if (!el) {
+      onHeightChange?.(0);
+      return;
+    }
+    const ro = new ResizeObserver(() => {
+      onHeightChange?.(el.offsetHeight);
+    });
+    ro.observe(el);
+    onHeightChange?.(el.offsetHeight);
+    return () => ro.disconnect();
   }, [visible.length, onHeightChange]);
 
   const dismiss = (id: string) => {

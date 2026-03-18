@@ -27,15 +27,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <NotificationBanner />
-
-      <header
-        className={`sticky top-0 z-50 transition-all duration-500 ${
+      <div className={`sticky top-0 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-card/90 backdrop-blur-xl shadow-sm"
             : "bg-transparent"
-        }`}
-      >
+        }`}>
+        <NotificationBanner />
+        <header>
         <nav className="container flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-3 group">
             <img

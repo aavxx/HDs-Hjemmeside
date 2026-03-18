@@ -46,7 +46,7 @@ const NotificationBanner = () => {
 
   return (
     <div
-      className="sticky top-0 left-0 right-0 w-full z-[9999]"
+      className="w-full"
       style={{ backgroundColor: "#ffffb3" }}
     >
       {visible.map((n) => (

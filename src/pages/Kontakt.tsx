@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, Loader2, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface FormErrors {
   navn?: string;

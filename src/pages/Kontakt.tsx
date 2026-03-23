@@ -31,16 +31,22 @@ const Kontakt = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
+
     try {
-      const res = await fetch("https://api.henrietteduckert.dk/send", {
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
+          access_key: "aee0fc08-8ca2-4624-bb97-c1817216ca1d",
           name: formData.navn.trim(),
           email: formData.email.trim(),
           subject: formData.emne.trim(),
@@ -48,12 +54,16 @@ const Kontakt = () => {
         }),
       });
 
-      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
 
-      toast.success("Tak for din besked. Henriette vender tilbage hurtigst muligt.");
-      setFormData({ navn: "", email: "", emne: "", besked: "" });
-      setErrors({});
-    } catch {
+      if (data.success) {
+        toast.success("Tak for din besked. Henriette vender tilbage hurtigst muligt.");
+        setFormData({ navn: "", email: "", emne: "", besked: "" });
+        setErrors({});
+      } else {
+        throw new Error("API fejl");
+      }
+    } catch (error) {
       toast.error("Der opstod en fejl. Prøv igen senere.");
     } finally {
       setIsSubmitting(false);
@@ -62,20 +72,14 @@ const Kontakt = () => {
 
   const inputClass =
     "w-full bg-card border border-border px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:border-foreground/30 transition-all duration-300";
+
   const labelClass = "block text-sm font-medium text-foreground mb-2";
   const errorClass = "text-xs text-destructive mt-1.5";
-
-  const fields: { key: keyof typeof formData; label: string; placeholder: string; type?: string }[] = [
-    { key: "navn", label: "Navn", placeholder: "Dit fulde navn" },
-    { key: "email", label: "E-mail", placeholder: "din@email.dk", type: "email" },
-    { key: "emne", label: "Emne", placeholder: "Hvad handler din henvendelse om?" },
-  ];
 
   return (
     <section className="container py-20 md:py-28">
       <div className="grid md:grid-cols-2 gap-16">
-        {/* Left: Contact info + map */}
-        <div className="stagger-children space-y-10">
+        <div className="space-y-10">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-medium mb-3">
               Kontakt
@@ -84,7 +88,9 @@ const Kontakt = () => {
               Skriv til os
             </h1>
           </div>
-          <div className="w-12 h-[2px] bg-foreground line-reveal" />
+
+          <div className="w-12 h-[2px] bg-foreground" />
+
           <p className="text-muted-foreground leading-relaxed">
             Har du spørgsmål om keramik, bestillinger eller andet? Send en besked
             herunder, så vender vi tilbage hurtigst muligt.
@@ -92,70 +98,68 @@ const Kontakt = () => {
 
           <div className="space-y-6">
             <div className="flex items-start gap-3">
-              <MapPin size={18} className="shrink-0 text-foreground/70 mt-0.5" />
+              <MapPin size={18} className="text-foreground/70 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-foreground">Adresse</p>
+                <p className="text-sm font-medium">Adresse</p>
                 <p className="text-sm text-muted-foreground">Fuglslev Bygade 5</p>
                 <p className="text-sm text-muted-foreground">8400 Ebeltoft</p>
               </div>
             </div>
+
             <div className="flex items-start gap-3">
-              <Phone size={18} className="shrink-0 text-foreground/70 mt-0.5" />
+              <Phone size={18} className="text-foreground/70 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-foreground">Telefon</p>
-                <a
-                  href="tel:+4520456637"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
+                <p className="text-sm font-medium">Telefon</p>
+                <a href="tel:+4520456637" className="text-sm text-muted-foreground hover:text-foreground">
                   +45 20 45 66 37
                 </a>
               </div>
             </div>
           </div>
-
-          <div className="w-full aspect-[4/3] border border-border overflow-hidden">
-            <iframe
-              title="Kort over Fuglslev Bygade 5, 8400 Ebeltoft"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2222.5!2d10.635!3d56.34!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x464dd7c0a5e3f3f1%3A0x0!2sFuglslev+Bygade+5%2C+8400+Ebeltoft!5e0!3m2!1sda!2sdk!4v1700000000000"
-              className="w-full h-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
-          </div>
         </div>
 
-        {/* Right: Form */}
-        <div className="stagger-children space-y-10">
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            {fields.map(({ key, label, placeholder, type }) => (
-              <div key={key}>
-                <label className={labelClass}>{label}</label>
-                <input
-                  type={type || "text"}
-                  value={formData[key]}
-                  onChange={(e) => {
-                    setFormData({ ...formData, [key]: e.target.value });
-                    if (errors[key]) setErrors({ ...errors, [key]: undefined });
-                  }}
-                  placeholder={placeholder}
-                  className={`${inputClass}${errors[key] ? " border-destructive" : ""}`}
-                />
-                {errors[key] && <p className={errorClass}>{errors[key]}</p>}
-              </div>
-            ))}
+        <div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className={labelClass}>Navn</label>
+              <input
+                type="text"
+                value={formData.navn}
+                onChange={(e) => setFormData({ ...formData, navn: e.target.value })}
+                className={inputClass}
+              />
+              {errors.navn && <p className={errorClass}>{errors.navn}</p>}
+            </div>
+
+            <div>
+              <label className={labelClass}>E-mail</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={inputClass}
+              />
+              {errors.email && <p className={errorClass}>{errors.email}</p>}
+            </div>
+
+            <div>
+              <label className={labelClass}>Emne</label>
+              <input
+                type="text"
+                value={formData.emne}
+                onChange={(e) => setFormData({ ...formData, emne: e.target.value })}
+                className={inputClass}
+              />
+              {errors.emne && <p className={errorClass}>{errors.emne}</p>}
+            </div>
 
             <div>
               <label className={labelClass}>Besked</label>
               <textarea
                 value={formData.besked}
-                onChange={(e) => {
-                  setFormData({ ...formData, besked: e.target.value });
-                  if (errors.besked) setErrors({ ...errors, besked: undefined });
-                }}
-                placeholder="Skriv din besked her..."
+                onChange={(e) => setFormData({ ...formData, besked: e.target.value })}
                 rows={5}
-                className={`${inputClass} resize-none${errors.besked ? " border-destructive" : ""}`}
+                className={`${inputClass} resize-none`}
               />
               {errors.besked && <p className={errorClass}>{errors.besked}</p>}
             </div>
@@ -163,17 +167,15 @@ const Kontakt = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group w-full bg-primary text-primary-foreground py-4 text-sm font-medium tracking-wide hover-lift inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full bg-primary text-primary-foreground py-4 text-sm font-medium"
             >
               {isSubmitting ? (
                 <>
-                  Sender...
-                  <Loader2 size={16} className="animate-spin" />
+                  Sender... <Loader2 className="inline animate-spin ml-2" size={16} />
                 </>
               ) : (
                 <>
-                  Send besked
-                  <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                  Send besked <ArrowRight className="inline ml-2" size={16} />
                 </>
               )}
             </button>

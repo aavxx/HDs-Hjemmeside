@@ -50,11 +50,11 @@ const Kontakt = () => {
 
       if (!res.ok) throw new Error("API error");
 
-      toast.success("Tak for din besked. Jeg vender tilbage hurtigst muligt.");
+      toast.success("Tak for din besked. Henriette vender tilbage hurtigst muligt.");
       setFormData({ navn: "", email: "", emne: "", besked: "" });
       setErrors({});
     } catch {
-      toast.error("Noget gik galt. Prøv venligst igen.");
+      toast.error("Der opstod en fejl. Prøv igen senere.");
     } finally {
       setIsSubmitting(false);
     }

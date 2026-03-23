@@ -37,17 +37,18 @@ const Kontakt = () => {
 
     setIsSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("send", {
-        body: {
+      const res = await fetch("https://api.henrietteduckert.dk/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name: formData.navn.trim(),
           email: formData.email.trim(),
           subject: formData.emne.trim(),
           message: formData.besked.trim(),
-        },
+        }),
       });
 
-      if (error) throw error;
-      if (data && !data.success) throw new Error(data.error || "Ukendt fejl");
+      if (!res.ok) throw new Error("API error");
 
       toast.success("Tak for din besked. Jeg vender tilbage hurtigst muligt.");
       setFormData({ navn: "", email: "", emne: "", besked: "" });

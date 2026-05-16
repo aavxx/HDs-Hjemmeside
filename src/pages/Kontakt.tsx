@@ -16,14 +16,10 @@ const Kontakt = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
+      const res = await fetch("/api/send", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_key: "aee0fc08-8ca2-4624-bb97-c1817216ca1d",
           name: formData.navn.trim(),
           email: formData.email.trim(),
           subject: formData.emne.trim(),
@@ -33,7 +29,7 @@ const Kontakt = () => {
 
       const data = await res.json();
 
-      if (data.success) {
+      if (data.ok) {
         toast.success("Tak for din besked. Henriette vender tilbage hurtigst muligt.");
         setFormData({ navn: "", email: "", emne: "", besked: "" });
       } else {

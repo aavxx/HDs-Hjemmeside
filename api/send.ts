@@ -51,7 +51,7 @@ function autoReplyHtml(firstName: string): string {
       </tr>
       <tr>
         <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:18px;font-weight:400;color:#000000;line-height:1.7;padding-bottom:32px;">
-          Tak fordi du har skrevet til mig<br /><br />
+          Tak for din henvendelse<br /><br />
           Jeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.<br /><br />
           Jeg ser frem til vores dialog og takker for din interesse.
         </td>
@@ -130,9 +130,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await resend.emails.send({
       from: FROM,
       to: email as string,
-      subject: "Tak for din besked",
+      subject: "Tak for din henvendelse",
       html: autoReplyHtml(firstName),
-      text: `Hej ${firstName},\n\nTak fordi du har skrevet til mig.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
+      text: `Hej ${firstName},\n\nTak for din henvendelse.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
     });
 
     return res.status(200).json({ ok: true });

@@ -17,9 +17,8 @@ function emailShell(cardContent: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
-<body style="margin:0;padding:0;background:#f9f9f9;font-family:'Bricolage Grotesque',Georgia,serif;">
+<body style="margin:0;padding:0;background:#f9f9f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;padding:40px 16px;">
     <tr>
       <td align="center">
@@ -46,12 +45,12 @@ function autoReplyHtml(firstName: string): string {
   const card = `
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:24px;font-weight:700;color:#000000;padding-bottom:20px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;color:#000000;padding-bottom:20px;">
           Hej ${firstName},
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:18px;font-weight:400;color:#000000;line-height:1.7;padding-bottom:32px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:400;color:#000000;line-height:1.7;padding-bottom:32px;">
           Tak for din henvendelse<br /><br />
           Jeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.<br /><br />
           Jeg ser frem til vores dialog og takker for din interesse.
@@ -59,8 +58,8 @@ function autoReplyHtml(firstName: string): string {
       </tr>
       <tr>
         <td style="border-top:1px solid #e0e0e0;padding-top:24px;">
-          <p style="margin:0 0 4px;font-family:'Bricolage Grotesque',Georgia,serif;font-size:20px;font-weight:600;color:#000000;">Henriette Duckert</p>
-          <p style="margin:0;font-family:'Bricolage Grotesque',Georgia,serif;font-size:16px;font-weight:400;color:#000000;">henrietteduckert.dk</p>
+          <p style="margin:0 0 4px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:20px;font-weight:600;color:#000000;">Henriette Duckert</p>
+          <p style="margin:0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:400;color:#000000;">henrietteduckert.dk</p>
         </td>
       </tr>
     </table>`;
@@ -72,32 +71,32 @@ function notificationHtml(name: string, email: string, subject: string, message:
   const card = `
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:24px;font-weight:700;color:#000000;padding-bottom:20px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;color:#000000;padding-bottom:20px;">
           Ny henvendelse
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:16px;color:#000000;padding-bottom:6px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:#000000;padding-bottom:6px;">
           <strong>Navn:</strong> ${name}
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:16px;color:#000000;padding-bottom:6px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:#000000;padding-bottom:6px;">
           <strong>Email:</strong> ${email}
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:16px;color:#000000;padding-bottom:24px;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:#000000;padding-bottom:24px;">
           <strong>Emne:</strong> ${subject}
         </td>
       </tr>
       <tr>
-        <td style="border-top:1px solid #e0e0e0;padding-top:24px;font-family:'Bricolage Grotesque',Georgia,serif;font-size:18px;color:#000000;line-height:1.7;padding-bottom:32px;">
+        <td style="border-top:1px solid #e0e0e0;padding-top:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;color:#000000;line-height:1.7;padding-bottom:32px;">
           ${safeMessage}
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Bricolage Grotesque',Georgia,serif;font-size:14px;color:#888888;">
+        <td style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;color:#888888;">
           Svar direkte på denne mail for at svare ${name}.
         </td>
       </tr>

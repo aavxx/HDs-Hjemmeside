@@ -33,10 +33,11 @@ const PortalInbox = () => {
   }, []);
 
   const fetchEmails = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("portal_emails")
       .select("*")
       .order("received_at", { ascending: false });
+    if (error) console.error("[inbox] fetch failed:", error.message, error.code);
     setEmails((data as Email[]) ?? []);
     setLoading(false);
   };

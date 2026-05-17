@@ -119,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const firstName = (name as string).split(" ")[0];
 
   try {
-    await resend.emails.send({
+    const notif = await resend.emails.send({
       from: FROM,
       to: HENRIETTE,
       replyTo: email as string,
@@ -127,14 +127,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       html: notificationHtml(name as string, email as string, subject as string, message as string),
       text: `Navn: ${name}\nEmail: ${email}\nEmne: ${subject}\n\nBesked:\n${message}`,
     });
+    console.log("[send] notification to keramiker:", notif.data?.id ?? notif.error?.message);
 
-    await resend.emails.send({
+    const reply = await resend.emails.send({
       from: FROM,
       to: email as string,
       subject: "Tak for din henvendelse",
       html: autoReplyHtml(firstName),
       text: `Hej ${firstName},\n\nTak for din henvendelse.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
     });
+    console.log("[send] auto-reply to customer:", reply.data?.id ?? reply.error?.message);
 
     try {
       const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";

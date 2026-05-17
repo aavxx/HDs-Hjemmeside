@@ -139,9 +139,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       const supabaseUrl = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
       const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
-      if (supabaseUrl && supabaseKey) {
+
+      console.log("[send] supabase url set:", !!supabaseUrl, "key set:", !!supabaseKey);
+
+      if (!supabaseUrl || !supabaseKey) {
+        console.error("[send] Supabase env vars missing — skipping DB insert");
+      } else {
         const db = createClient(supabaseUrl, supabaseKey);
-        await db.from("portal_emails").insert({
+        const { error: dbError } = await db.from("portal_emails").insert({
           from_name: name,
           from_email: email,
           subject: subject,
@@ -150,9 +155,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           direction: "inbound",
           is_read: false,
         });
+        if (dbError) {
+          console.error("[send] Supabase insert failed:", dbError.message, dbError.code);
+        } else {
+          console.log("[send] Saved to portal_emails OK");
+        }
       }
-    } catch {
-      // Non-fatal: email was sent successfully
+    } catch (dbErr) {
+      console.error("[send] Supabase exception:", dbErr);
     }
 
     return res.status(200).json({ ok: true });

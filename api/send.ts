@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createClient } from "@supabase/supabase-js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -134,6 +135,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       html: autoReplyHtml(firstName),
       text: `Hej ${firstName},\n\nTak for din henvendelse.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
     });
+
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+      if (supabaseUrl && supabaseKey) {
+        const db = createClient(supabaseUrl, supabaseKey);
+        await db.from("portal_emails").insert({
+          from_name: name,
+          from_email: email,
+          subject: subject,
+          body_text: message,
+          body_html: notificationHtml(name as string, email as string, subject as string, message as string),
+          direction: "inbound",
+          is_read: false,
+        });
+      }
+    } catch {
+      // Non-fatal: email was sent successfully
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err: unknown) {

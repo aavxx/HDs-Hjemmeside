@@ -1,12 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "has": [{ "type": "host", "value": "portal.henrietteduckert.dk" }],
-      "destination": "/portal",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]

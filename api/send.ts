@@ -1,6 +1,5 @@
 import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createClient } from "@supabase/supabase-js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -138,39 +137,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text: `Hej ${firstName},\n\nTak for din henvendelse.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
     });
     console.log("[send] auto-reply to customer:", reply.data?.id ?? reply.error?.message);
-
-    try {
-      const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
-      const supabaseKey =
-        process.env.SUPABASE_ANON_KEY ??
-        process.env.SUPABASE_SERVICE_ROLE_KEY ??
-        process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-        "";
-
-      console.log("[send] supabase url set:", !!supabaseUrl, "key set:", !!supabaseKey);
-
-      if (!supabaseUrl || !supabaseKey) {
-        console.error("[send] Supabase env vars missing — skipping DB insert");
-      } else {
-        const db = createClient(supabaseUrl, supabaseKey);
-        const { error: dbError } = await db.from("portal_emails").insert({
-          from_name: name,
-          from_email: email,
-          subject: subject,
-          body_text: message,
-          body_html: notificationHtml(name as string, email as string, subject as string, message as string),
-          direction: "inbound",
-          is_read: false,
-        });
-        if (dbError) {
-          console.error("[send] Supabase insert failed:", dbError.message, dbError.code);
-        } else {
-          console.log("[send] Saved to portal_emails OK");
-        }
-      }
-    } catch (dbErr) {
-      console.error("[send] Supabase exception:", dbErr);
-    }
 
     return res.status(200).json({ ok: true });
   } catch (err: unknown) {

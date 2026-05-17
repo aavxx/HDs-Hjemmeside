@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import hdLogo from "@/assets/hd-logo.svg";
 import NotificationBanner from "@/components/NotificationBanner";
-import CookieBanner from "@/components/portal/CookieBanner";
 
 const navItems = [
   { path: "/", label: "Hjem" },
@@ -171,7 +170,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </footer>
-      <CookieBanner />
     </div>
   );
 };

@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import hdLogo from "@/assets/hd-logo.svg";
-
-const PORTAL_PASSWORD =
-  (import.meta.env.VITE_PORTAL_PASSWORD as string | undefined) ?? "keramik2024";
 
 interface PortalLoginProps {
   onLogin: () => void;
@@ -12,16 +10,31 @@ interface PortalLoginProps {
 
 const PortalLogin = ({ onLogin }: PortalLoginProps) => {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === PORTAL_PASSWORD) {
-      sessionStorage.setItem("portal_auth", "1");
-      onLogin();
-    } else {
-      setError(true);
-      setPassword("");
+    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/portal/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.ok && data.token) {
+        sessionStorage.setItem("portal_token", data.token);
+        onLogin();
+      } else {
+        setError("Forkert adgangskode. Prøv igen.");
+        setPassword("");
+      }
+    } catch {
+      setError("Kunne ikke forbinde til serveren. Prøv igen.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,27 +72,34 @@ const PortalLogin = ({ onLogin }: PortalLoginProps) => {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                setError(false);
+                setError("");
               }}
               className="w-full"
               style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif" }}
               autoFocus
+              disabled={loading}
             />
             {error && (
-              <p className="text-sm text-red-600 mt-1">
-                Forkert adgangskode. Prøv igen.
-              </p>
+              <p className="text-sm text-red-600 mt-1">{error}</p>
             )}
           </div>
           <Button
             type="submit"
             className="w-full"
+            disabled={loading || !password}
             style={{
               backgroundColor: "#07113C",
               fontFamily: "'Bricolage Grotesque', Georgia, serif",
             }}
           >
-            Log ind
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 size={15} className="animate-spin" />
+                Logger ind...
+              </span>
+            ) : (
+              "Log ind"
+            )}
           </Button>
         </form>
       </div>

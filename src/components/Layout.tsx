@@ -15,10 +15,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 20);
+      if (y > lastY && y > 80) {
+        setHidden(true);
+      } else if (y < lastY) {
+        setHidden(false);
+      }
+      lastY = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -28,10 +39,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="sticky top-0 z-50">
+      <div
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+          hidden ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
         <NotificationBanner />
         <div
-          className={`transition-all duration-500 ${
+          className={`transition-colors duration-500 ${
             scrolled
               ? "bg-card/90 backdrop-blur-xl shadow-sm"
               : "bg-background"
@@ -126,7 +141,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </div>
 
-      <main className="flex-1">
+      <main className="flex-1 pt-16 md:pt-20">
         <div key={location.pathname} className="page-transition">
           {children}
         </div>

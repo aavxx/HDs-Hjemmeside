@@ -8,6 +8,10 @@ import OmMig from "./pages/OmMig";
 import Kontakt from "./pages/Kontakt";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Privatlivspolitik from "./pages/Privatlivspolitik";
+import PortalDashboard from "./pages/portal/PortalDashboard";
+import PortalInbox from "./pages/portal/PortalInbox";
+import PortalOrders from "./pages/portal/PortalOrders";
 
 const queryClient = new QueryClient();
 
@@ -16,15 +20,32 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/om-mig" element={<OmMig />} />
-            <Route path="/kontakt" element={<Kontakt />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          {/* Portal routes — rendered outside the main Layout */}
+          <Route path="/portal" element={<PortalDashboard />} />
+          <Route path="/portal/inbox" element={<PortalInbox />} />
+          <Route path="/portal/orders" element={<PortalOrders />} />
+
+          {/* Public routes wrapped in Layout */}
+          <Route
+            path="*"
+            element={
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/om-mig" element={<OmMig />} />
+                  <Route path="/kontakt" element={<Kontakt />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route
+                    path="/privatlivspolitik"
+                    element={<Privatlivspolitik />}
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

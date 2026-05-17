@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
@@ -15,11 +15,23 @@ import PortalOrders from "./pages/portal/PortalOrders";
 
 const queryClient = new QueryClient();
 
+// Redirect portal.henrietteduckert.dk/* → /portal/*
+function SubdomainGate() {
+  const location = useLocation();
+  const isPortalSubdomain = window.location.hostname.startsWith("portal.");
+  if (isPortalSubdomain && !location.pathname.startsWith("/portal")) {
+    const dest = "/portal" + (location.pathname === "/" ? "" : location.pathname);
+    return <Navigate to={dest} replace />;
+  }
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
+        <SubdomainGate />
         <Routes>
           {/* Portal routes — rendered outside the main Layout */}
           <Route path="/portal" element={<PortalDashboard />} />

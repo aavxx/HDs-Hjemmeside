@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
-import { Trash2, Reply, Send, ChevronDown } from "lucide-react";
+import { Trash2, CornerUpLeft, Send, ChevronDown, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PortalLayout from "@/components/portal/PortalLayout";
 
@@ -63,7 +63,7 @@ function groupIntoThreads(emails: PortalEmail[]): Thread[] {
 
     const rawSubject = first.subject || "(Intet emne)";
     const subject = rawSubject.replace(/^(re:\s*)+/i, "").trim();
-    const hasUnread = msgs.some((m) => !m.is_read);
+    const hasUnread = msgs.some((m) => !m.is_read && m.direction === "inbound");
 
     threads.push({
       thread_id,
@@ -71,7 +71,7 @@ function groupIntoThreads(emails: PortalEmail[]): Thread[] {
       latestDate: last.received_at,
       senderName: first.from_name || first.from_email || "Ukendt",
       senderEmail: first.from_email || "",
-      preview: last.body_text?.slice(0, 100) || "",
+      preview: last.body_text?.slice(0, 120) || "",
       hasUnread,
       emails: msgs,
     });
@@ -86,24 +86,42 @@ function groupIntoThreads(emails: PortalEmail[]): Thread[] {
   return threads;
 }
 
-function EmailBubble({
+function Avatar({ name }: { name: string }) {
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  return (
+    <div
+      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold text-white shrink-0"
+      style={{ backgroundColor: "#07113C" }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+function EmailMessage({
   email,
   onTrash,
+  defaultExpanded,
 }: {
   email: PortalEmail;
   onTrash: (id: string) => Promise<void>;
+  defaultExpanded: boolean;
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [trashing, setTrashing] = useState(false);
 
-  const handleTrash = async () => {
-    setTrashing(true);
-    await onTrash(email.id);
-    setTrashing(false);
-  };
+  useEffect(() => {
+    setExpanded(defaultExpanded);
+  }, [defaultExpanded]);
 
   useEffect(() => {
-    if (iframeRef.current && email.body_html) {
+    if (expanded && iframeRef.current && email.body_html) {
       const doc = iframeRef.current.contentDocument;
       if (doc) {
         doc.open();
@@ -111,68 +129,85 @@ function EmailBubble({
         doc.close();
       }
     }
-  }, [email.body_html]);
+  }, [expanded, email.body_html]);
 
   const isOutbound = email.direction === "outbound";
-  const sender = isOutbound ? "Dig" : email.from_name || email.from_email || "Ukendt";
+  const senderName = isOutbound
+    ? "Dig (Henriette Duckert Keramik)"
+    : email.from_name || email.from_email || "Ukendt";
+  const senderEmail = isOutbound ? email.account || "" : email.from_email || "";
   const dateStr = email.received_at
-    ? format(new Date(email.received_at), "d. MMM yyyy 'kl.' HH:mm", { locale: da })
+    ? format(new Date(email.received_at), "d. MMMM yyyy 'kl.' HH:mm", { locale: da })
     : "";
 
-  return (
-    <div className={`flex flex-col gap-1 ${isOutbound ? "items-end" : "items-start"}`}>
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-xs font-semibold text-gray-700">{sender}</span>
-        {!isOutbound && email.from_email && (
-          <span className="text-xs text-gray-400">&lt;{email.from_email}&gt;</span>
-        )}
-        <span className="text-xs text-gray-400">{dateStr}</span>
-        <button
-          onClick={handleTrash}
-          disabled={trashing}
-          title="Slet"
-          className="text-gray-300 hover:text-red-500 transition-colors ml-1 disabled:opacity-50"
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
+  const handleTrash = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTrashing(true);
+    await onTrash(email.id);
+    setTrashing(false);
+  };
 
-      <div
-        className={`max-w-2xl rounded-2xl px-4 py-3 text-sm shadow-sm border ${
-          isOutbound
-            ? "bg-[#07113C] text-white border-transparent"
-            : "bg-white border-gray-100 text-gray-800"
-        }`}
+  return (
+    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors text-left"
       >
-        {email.body_html ? (
-          <iframe
-            ref={iframeRef}
-            className="w-full border-0"
-            style={{ minHeight: 80 }}
-            sandbox="allow-same-origin"
-            title="email-body"
-            onLoad={() => {
-              if (iframeRef.current) {
-                const h = iframeRef.current.contentDocument?.body?.scrollHeight;
-                if (h) iframeRef.current.style.height = h + 16 + "px";
-              }
-            }}
-          />
-        ) : (
-          <pre className="whitespace-pre-wrap font-sans">{email.body_text || ""}</pre>
-        )}
-      </div>
+        <Avatar name={senderName} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-gray-900">{senderName}</span>
+            {senderEmail && (
+              <span className="text-xs text-gray-400">&lt;{senderEmail}&gt;</span>
+            )}
+          </div>
+          {!expanded && (
+            <p className="text-xs text-gray-400 truncate mt-0.5">
+              {email.body_text?.slice(0, 80) || ""}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-xs text-gray-400 whitespace-nowrap">{dateStr}</span>
+          <button
+            onClick={handleTrash}
+            disabled={trashing}
+            title="Slet"
+            className="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-gray-100 px-5 pb-5 pt-4">
+          {email.body_html ? (
+            <iframe
+              ref={iframeRef}
+              className="w-full border-0"
+              style={{ minHeight: 80 }}
+              sandbox="allow-same-origin"
+              title="email-body"
+              onLoad={() => {
+                if (iframeRef.current) {
+                  const h = iframeRef.current.contentDocument?.body?.scrollHeight;
+                  if (h) iframeRef.current.style.height = h + 16 + "px";
+                }
+              }}
+            />
+          ) : (
+            <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+              {email.body_text || ""}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function ReplyForm({
-  thread,
-  onSent,
-}: {
-  thread: Thread;
-  onSent: () => void;
-}) {
+function ReplyForm({ thread, onSent }: { thread: Thread; onSent: () => void }) {
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,9 +229,7 @@ function ReplyForm({
     if (!body.trim()) return;
     setSending(true);
     setError(null);
-
     const token = sessionStorage.getItem("portal_token");
-
     try {
       const res = await fetch("/api/portal/reply", {
         method: "POST",
@@ -212,13 +245,11 @@ function ReplyForm({
           inReplyToId: lastInbound?.id,
         }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.message || "Der opstod en fejl ved afsendelse.");
         return;
       }
-
       setBody("");
       onSent();
     } catch {
@@ -229,39 +260,40 @@ function ReplyForm({
   };
 
   return (
-    <div className="border-t border-gray-100 pt-4 mt-4">
-      <div className="flex items-start gap-2">
-        <Reply size={16} className="text-gray-400 mt-3 shrink-0" />
-        <div className="flex-1 flex flex-col gap-2">
-          <textarea
-            ref={textareaRef}
-            value={body}
-            onChange={(e) => {
-              setBody(e.target.value);
-              resizeTextarea();
-            }}
-            onInput={resizeTextarea}
-            rows={3}
-            placeholder="Skriv dit svar…"
-            className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#07113C]/20 focus:border-[#07113C] transition overflow-hidden"
-            style={{ minHeight: 80 }}
-          />
-          {error && (
-            <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-          <div className="flex justify-end">
-            <button
-              onClick={handleSend}
-              disabled={sending || !body.trim()}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: "#07113C" }}
-            >
-              <Send size={14} />
-              {sending ? "Sender…" : "Send"}
-            </button>
-          </div>
+    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+        <CornerUpLeft size={14} className="text-gray-400" />
+        <span className="text-sm text-gray-500">
+          Svar til <span className="font-medium text-gray-700">{lastInbound?.from_email || thread.senderEmail}</span>
+        </span>
+      </div>
+      <div className="px-5 py-4 flex flex-col gap-3">
+        <textarea
+          ref={textareaRef}
+          value={body}
+          onChange={(e) => {
+            setBody(e.target.value);
+            resizeTextarea();
+          }}
+          onInput={resizeTextarea}
+          rows={4}
+          placeholder="Skriv dit svar…"
+          className="w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#07113C]/20 focus:border-[#07113C] transition overflow-hidden"
+          style={{ minHeight: 100 }}
+        />
+        {error && (
+          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        )}
+        <div className="flex justify-end">
+          <button
+            onClick={handleSend}
+            disabled={sending || !body.trim()}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: "#07113C" }}
+          >
+            <Send size={14} />
+            {sending ? "Sender…" : "Send svar"}
+          </button>
         </div>
       </div>
     </div>
@@ -280,9 +312,7 @@ export default function PortalInbox() {
     setLoading(true);
     setError(null);
 
-    let query = supabase
-      .from("portal_emails" as never)
-      .select("*");
+    let query = supabase.from("portal_emails" as never).select("*");
 
     if (tab === "indbakke") {
       query = query.eq("direction", "inbound").is("deleted_at", null);
@@ -311,26 +341,18 @@ export default function PortalInbox() {
   }, [selectedAccount, tab]);
 
   const threads = groupIntoThreads(emails);
-
   const selectedThread = threads.find((t) => t.thread_id === selectedThreadId) || null;
 
   const handleSelectThread = async (thread: Thread) => {
     setSelectedThreadId(thread.thread_id);
-
-    const unreadIds = thread.emails
-      .filter((e) => !e.is_read)
-      .map((e) => e.id);
-
+    const unreadIds = thread.emails.filter((e) => !e.is_read).map((e) => e.id);
     if (unreadIds.length > 0) {
       await supabase
         .from("portal_emails" as never)
         .update({ is_read: true } as never)
         .in("id", unreadIds);
-
       setEmails((prev) =>
-        prev.map((e) =>
-          unreadIds.includes(e.id) ? { ...e, is_read: true } : e
-        )
+        prev.map((e) => (unreadIds.includes(e.id) ? { ...e, is_read: true } : e))
       );
     }
   };
@@ -340,10 +362,7 @@ export default function PortalInbox() {
     try {
       await fetch("/api/portal/trash", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ id: emailId }),
       });
       await fetchEmails();
@@ -354,40 +373,37 @@ export default function PortalInbox() {
 
   const tabBtnClass = (t: TabType) =>
     `px-4 py-1.5 text-sm rounded-full font-medium transition-colors ${
-      tab === t
-        ? "text-white"
-        : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+      tab === t ? "text-white" : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
     }`;
 
   return (
     <PortalLayout>
-      <div className="flex h-screen flex-col">
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100 bg-white flex flex-col gap-3">
-          <h1
-            className="text-xl font-semibold"
-            style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
-          >
-            Indbakke
-          </h1>
-
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="relative">
-              <select
-                value={selectedAccount}
-                onChange={(e) => setSelectedAccount(e.target.value)}
-                className="appearance-none rounded-lg border border-gray-200 bg-white px-4 py-2 pr-8 text-sm font-medium outline-none focus:ring-2 focus:ring-[#07113C]/20 focus:border-[#07113C] cursor-pointer"
-                style={{ color: "#07113C" }}
+      <div className="flex h-screen">
+        {/* Thread list */}
+        <div className="w-[340px] shrink-0 flex flex-col border-r border-gray-200 bg-white">
+          {/* Toolbar */}
+          <div className="px-4 pt-5 pb-3 border-b border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="relative flex-1">
+                <select
+                  value={selectedAccount}
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="appearance-none w-full rounded-lg border border-gray-200 bg-white px-3 py-2 pr-7 text-xs font-medium outline-none focus:ring-2 focus:ring-[#07113C]/20 focus:border-[#07113C] cursor-pointer truncate"
+                  style={{ color: "#07113C" }}
+                >
+                  {ACCOUNTS.map((a) => (
+                    <option key={a} value={a}>{a}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              <button
+                onClick={fetchEmails}
+                title="Opdater"
+                className="ml-2 p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                {ACCOUNTS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
+                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              </button>
             </div>
 
             <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
@@ -403,26 +419,24 @@ export default function PortalInbox() {
               ))}
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-1 min-h-0">
-          <div
-            className="w-96 shrink-0 border-r border-gray-100 flex flex-col overflow-y-auto"
-            style={{ backgroundColor: "#F9F9F9" }}
-          >
+          {/* List */}
+          <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="flex flex-col gap-2 p-4">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+              <div className="flex flex-col gap-0">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="px-4 py-4 border-b border-gray-50">
+                    <div className="h-3.5 w-2/3 bg-gray-100 rounded animate-pulse mb-2" />
+                    <div className="h-3 w-full bg-gray-100 rounded animate-pulse mb-1" />
+                    <div className="h-3 w-4/5 bg-gray-100 rounded animate-pulse" />
+                  </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="p-4 text-sm text-red-600 bg-red-50 m-4 rounded-lg">
-                {error}
-              </div>
+              <div className="p-4 text-sm text-red-600 bg-red-50 m-4 rounded-lg">{error}</div>
             ) : threads.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">
-                Ingen mails her
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm gap-2">
+                <span>Ingen mails</span>
               </div>
             ) : (
               threads.map((thread) => {
@@ -431,14 +445,16 @@ export default function PortalInbox() {
                   <button
                     key={thread.thread_id}
                     onClick={() => handleSelectThread(thread)}
-                    className={`w-full text-left px-4 py-3.5 border-b border-gray-100 transition-colors flex flex-col gap-1 ${
-                      isSelected ? "bg-white shadow-sm" : "hover:bg-white"
+                    className={`w-full text-left px-4 py-3.5 border-b border-gray-100 transition-colors flex flex-col gap-0.5 ${
+                      isSelected
+                        ? "bg-[#07113C]/5 border-l-2 border-l-[#07113C]"
+                        : "hover:bg-gray-50 border-l-2 border-l-transparent"
                     }`}
                   >
-                    <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <span
                         className={`text-sm truncate ${
-                          thread.hasUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"
+                          thread.hasUnread ? "font-bold text-gray-900" : "font-medium text-gray-700"
                         }`}
                       >
                         {thread.senderName}
@@ -449,64 +465,65 @@ export default function PortalInbox() {
                           : ""}
                       </span>
                     </div>
-                    <p
-                      className={`text-sm truncate ${
-                        thread.hasUnread ? "font-medium text-gray-800" : "text-gray-600"
-                      }`}
-                    >
-                      {thread.subject}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      {thread.hasUnread && (
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                      )}
+                      <p className={`text-sm truncate ${thread.hasUnread ? "font-semibold text-gray-800" : "text-gray-600"}`}>
+                        {thread.subject}
+                      </p>
+                    </div>
                     <p className="text-xs text-gray-400 truncate">{thread.preview}</p>
-                    {thread.hasUnread && (
-                      <span className="w-2 h-2 rounded-full bg-blue-500 inline-block mt-0.5" />
-                    )}
                   </button>
                 );
               })
             )}
           </div>
+        </div>
 
-          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F9F9F9]">
-            {!selectedThread ? (
-              <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
-                Vælg en tråd for at læse
+        {/* Reading pane */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F5F5F5]">
+          {!selectedThread ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400">
+              <span className="text-4xl">✉️</span>
+              <span className="text-sm">Vælg en mail for at læse</span>
+            </div>
+          ) : (
+            <div className="flex flex-col h-full">
+              {/* Subject header */}
+              <div className="px-8 py-5 bg-white border-b border-gray-200 shrink-0">
+                <h2
+                  className="text-xl font-semibold"
+                  style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
+                >
+                  {selectedThread.subject}
+                </h2>
+                <p className="text-xs text-gray-400 mt-1">
+                  {selectedThread.emails.length}{" "}
+                  {selectedThread.emails.length === 1 ? "besked" : "beskeder"}
+                </p>
               </div>
-            ) : (
-              <div className="flex flex-col gap-6 p-6 max-w-4xl w-full mx-auto">
-                <div>
-                  <h2
-                    className="text-lg font-semibold"
-                    style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
-                  >
-                    {selectedThread.subject}
-                  </h2>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {selectedThread.emails.length}{" "}
-                    {selectedThread.emails.length === 1 ? "besked" : "beskeder"}
-                  </p>
-                </div>
 
-                <div className="flex flex-col gap-5">
-                  {selectedThread.emails.map((email) => (
-                    <EmailBubble
-                      key={email.id}
-                      email={email}
-                      onTrash={handleTrash}
-                    />
-                  ))}
-                </div>
+              {/* Messages */}
+              <div className="flex-1 flex flex-col gap-3 px-8 py-6">
+                {selectedThread.emails.map((email, idx) => (
+                  <EmailMessage
+                    key={email.id}
+                    email={email}
+                    onTrash={handleTrash}
+                    defaultExpanded={idx === selectedThread.emails.length - 1}
+                  />
+                ))}
 
                 {tab === "indbakke" && (
                   <ReplyForm
                     thread={selectedThread}
-                    onSent={() => {
-                      fetchEmails();
-                    }}
+                    onSent={fetchEmails}
                   />
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </PortalLayout>

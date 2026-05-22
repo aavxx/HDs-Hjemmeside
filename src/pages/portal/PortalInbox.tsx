@@ -282,10 +282,7 @@ export default function PortalInbox() {
 
     let query = supabase
       .from("portal_emails" as never)
-      .select(
-        "id, thread_id, account, direction, from_name, from_email, to_email, subject, body_text, body_html, is_read, received_at, deleted_at"
-      )
-      .eq("account", selectedAccount);
+      .select("*");
 
     if (tab === "indbakke") {
       query = query.eq("direction", "inbound").is("deleted_at", null);
@@ -300,7 +297,8 @@ export default function PortalInbox() {
     const { data, error: err } = await query;
 
     if (err) {
-      setError("Der opstod en fejl ved indlæsning af mails.");
+      console.error("[inbox] fetch error:", err.message, err.code, err.details);
+      setError(`Fejl: ${err.message}`);
     } else {
       setEmails((data as PortalEmail[]) ?? []);
     }

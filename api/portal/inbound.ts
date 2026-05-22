@@ -1,8 +1,5 @@
-import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 const KNOWN_ACCOUNTS = [
   "keramiker@henrietteduckert.dk",
@@ -40,19 +37,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ ok: false, error: "missing email_id" });
   }
 
-  // Fetch full email content from Resend API
-  const { data: email, error: fetchError } = await resend.emails.get(emailId);
-  if (fetchError || !email) {
-    console.error("[inbound] failed to fetch email:", fetchError);
+  // Fetch full email content via Resend Received Emails API
+  // (resend.emails.get() is for sent emails only — received emails use /inbound/emails/:id)
+  const apiKey = process.env.RESEND_API_KEY ?? "";
+  const fetchRes = await fetch(`https://api.resend.com/inbound/emails/${emailId}`, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!fetchRes.ok) {
+    const body = await fetchRes.text();
+    console.error(`[inbound] fetch failed ${fetchRes.status}:`, body);
     return res.status(500).json({ ok: false, error: "fetch failed" });
   }
+  const email = await fetchRes.json() as Record<string, unknown>;
 
-  const from: string = (email as Record<string, unknown>).from as string ?? "";
-  const to: string | string[] = (email as Record<string, unknown>).to as string | string[] ?? "";
-  const subject: string = (email as Record<string, unknown>).subject as string ?? "(Intet emne)";
-  const bodyHtml: string | null = (email as Record<string, unknown>).html as string ?? null;
-  const bodyText: string | null = (email as Record<string, unknown>).text as string ?? null;
-  const headers: Record<string, string> = (email as Record<string, unknown>).headers as Record<string, string> ?? {};
+  const from: string = email.from as string ?? "";
+  const to: string | string[] = email.to as string | string[] ?? "";
+  const subject: string = email.subject as string ?? "(Intet emne)";
+  const bodyHtml: string | null = (email.html ?? email.body_html) as string ?? null;
+  const bodyText: string | null = (email.text ?? email.body_text) as string ?? null;
+  const headers = email.headers as Record<string, string> ?? {};
   const messageId: string | null = headers["message-id"] ?? emailId;
   const inReplyTo: string | null = headers["in-reply-to"] ?? null;
 

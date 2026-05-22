@@ -46,7 +46,7 @@ const Privatlivspolitik = () => {
           personoplysninger, når du besøger vores hjemmeside eller kontakter os.
         </p>
         <p>
-          Dataansvarlig: Henriette Duckert, keramiker@henrietteduckert.dk,
+          Dataansvarlig: Falke Duckert, data@henrietteduckert.dk,
           henrietteduckert.dk
         </p>
       </Section>
@@ -151,7 +151,7 @@ const Privatlivspolitik = () => {
           <li>Klage til Datatilsynet (datatilsynet.dk)</li>
         </ul>
         <p>
-          Kontakt os på keramiker@henrietteduckert.dk for at udøve dine
+          Kontakt os på data@henrietteduckert.dk for at udøve dine
           rettigheder.
         </p>
       </Section>
@@ -160,7 +160,9 @@ const Privatlivspolitik = () => {
         <p>
           Henriette Duckert Keramik
           <br />
-          E-mail: keramiker@henrietteduckert.dk
+          Dataansvarlig: Falke Duckert
+          <br />
+          E-mail: data@henrietteduckert.dk
           <br />
           Hjemmeside: henrietteduckert.dk
         </p>

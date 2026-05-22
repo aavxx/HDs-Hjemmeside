@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createClient } from "@supabase/supabase-js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -137,6 +138,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text: `Hej ${firstName},\n\nTak for din henvendelse.\n\nJeg har modtaget din besked, og den er landet sikkert i min indbakke. Jeg behandler alle henvendelser med omhu og vender tilbage til dig hurtigst muligt med et gennemtænkt svar.\n\nJeg ser frem til vores dialog og takker for din interesse.\n\nHenriette Duckert\nhenrietteduckert.dk`,
     });
     console.log("[send] auto-reply to customer:", reply.data?.id ?? reply.error?.message);
+
+    // Save to portal_emails + notify private email
+    const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
+    const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const db = createClient(supabaseUrl, supabaseKey);
+        const { data: row, error: dbErr } = await db.from("portal_emails").insert({
+          account: "keramiker@henrietteduckert.dk",
+          from_email: email as string,
+          from_name: name as string,
+          subject: subject as string,
+          body_text: message as string,
+          direction: "inbound",
+          is_read: false,
+        }).select("id").single();
+        if (dbErr) console.error("[send] db insert failed:", dbErr.message);
+        else {
+          // Set thread_id = own id (start of new thread)
+          await db.from("portal_emails").update({ thread_id: row.id }).eq("id", row.id);
+          console.log("[send] saved to portal_emails:", row.id);
+        }
+      } catch (e) { console.error("[send] db exception:", e); }
+    }
+
+    // Notify private email if configured
+    const notifyEmail = process.env.NOTIFICATION_EMAIL;
+    if (notifyEmail) {
+      await resend.emails.send({
+        from: FROM,
+        to: notifyEmail,
+        subject: `Ny henvendelse: ${subject} – ${name}`,
+        text: `Ny besked via kontaktformularen:\n\nNavn: ${name}\nEmail: ${email}\nEmne: ${subject}\n\nBesked:\n${message}\n\nSe portalen: https://portal.henrietteduckert.dk`,
+      }).catch(() => {});
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err: unknown) {

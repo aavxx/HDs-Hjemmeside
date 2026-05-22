@@ -1,5 +1,8 @@
+import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const KNOWN_ACCOUNTS = [
   "keramiker@henrietteduckert.dk",
@@ -8,7 +11,6 @@ const KNOWN_ACCOUNTS = [
 ];
 
 function extractEmail(raw: string): string {
-  // Handles "Name <email@domain>" or plain "email@domain"
   const m = raw.match(/<([^>]+)>/);
   return (m ? m[1] : raw).trim().toLowerCase();
 }
@@ -27,22 +29,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = req.body ?? {};
 
-  // Resend inbound format: body fields directly or nested under data
-  const payload = body.data ?? body;
+  // Only handle email.received events
+  if (body.type !== "email.received") {
+    return res.status(200).json({ ok: true, skipped: true });
+  }
 
-  const from: string = payload.from ?? "";
-  const to: string | string[] = payload.to ?? "";
-  const subject: string = payload.subject ?? "(Intet emne)";
-  const bodyHtml: string | null = payload.html ?? null;
-  const bodyText: string | null = payload.text ?? null;
-  const messageId: string | null =
-    payload.headers?.["message-id"] ?? payload.messageId ?? null;
-  const inReplyTo: string | null =
-    payload.headers?.["in-reply-to"] ?? payload.inReplyTo ?? null;
+  const emailId: string | undefined = body.data?.email_id;
+  if (!emailId) {
+    console.error("[inbound] missing email_id in payload");
+    return res.status(400).json({ ok: false, error: "missing email_id" });
+  }
+
+  // Fetch full email content from Resend API
+  const { data: email, error: fetchError } = await resend.emails.get(emailId);
+  if (fetchError || !email) {
+    console.error("[inbound] failed to fetch email:", fetchError);
+    return res.status(500).json({ ok: false, error: "fetch failed" });
+  }
+
+  const from: string = (email as Record<string, unknown>).from as string ?? "";
+  const to: string | string[] = (email as Record<string, unknown>).to as string | string[] ?? "";
+  const subject: string = (email as Record<string, unknown>).subject as string ?? "(Intet emne)";
+  const bodyHtml: string | null = (email as Record<string, unknown>).html as string ?? null;
+  const bodyText: string | null = (email as Record<string, unknown>).text as string ?? null;
+  const headers: Record<string, string> = (email as Record<string, unknown>).headers as Record<string, string> ?? {};
+  const messageId: string | null = headers["message-id"] ?? emailId;
+  const inReplyTo: string | null = headers["in-reply-to"] ?? null;
 
   const fromEmail = extractEmail(from);
   const fromName = from.replace(/<[^>]+>/, "").trim().replace(/^["']|["']$/g, "") || fromEmail;
   const account = resolveAccount(to);
+
+  console.log(`[inbound] email_id=${emailId} from=${fromEmail} account=${account}`);
 
   const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
   const supabaseKey =
@@ -58,20 +76,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const db = createClient(supabaseUrl, supabaseKey);
 
-  // Deduplicate by resend_id / message-id
-  if (messageId) {
-    const { data: existing } = await db
-      .from("portal_emails")
-      .select("id")
-      .eq("resend_id", messageId)
-      .maybeSingle();
-    if (existing) {
-      console.log("[inbound] duplicate, skipping:", messageId);
-      return res.status(200).json({ ok: true, duplicate: true });
-    }
+  // Deduplicate by email_id
+  const { data: existing } = await db
+    .from("portal_emails")
+    .select("id")
+    .eq("resend_id", emailId)
+    .maybeSingle();
+  if (existing) {
+    console.log("[inbound] duplicate, skipping:", emailId);
+    return res.status(200).json({ ok: true, duplicate: true });
   }
 
-  // Find thread: match by in-reply-to or by from+account combo
+  // Find thread via In-Reply-To, then fall back to sender+account match
   let threadId: string | null = null;
   if (inReplyTo) {
     const { data: parent } = await db
@@ -82,7 +98,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (parent) threadId = parent.thread_id ?? parent.id;
   }
   if (!threadId) {
-    // Check if there's an existing thread with this sender on this account
     const { data: prior } = await db
       .from("portal_emails")
       .select("thread_id, id")
@@ -95,10 +110,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (prior) threadId = prior.thread_id ?? prior.id;
   }
 
-  const { data: row, error } = await db
+  const { data: row, error: insertError } = await db
     .from("portal_emails")
     .insert({
-      resend_id: messageId,
+      resend_id: emailId,
       account,
       from_email: fromEmail,
       from_name: fromName,
@@ -113,16 +128,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .select("id")
     .single();
 
-  if (error) {
-    console.error("[inbound] insert error:", error.message);
+  if (insertError) {
+    console.error("[inbound] insert error:", insertError.message);
     return res.status(500).json({ ok: false });
   }
 
-  // If no thread yet, set thread_id = own id (new thread)
   if (!threadId && row?.id) {
     await db.from("portal_emails").update({ thread_id: row.id }).eq("id", row.id);
   }
 
-  console.log("[inbound] saved email for", account, "id:", row?.id);
+  console.log("[inbound] saved for", account, "id:", row?.id);
   return res.status(200).json({ ok: true });
 }

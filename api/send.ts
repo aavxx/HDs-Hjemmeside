@@ -151,6 +151,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           from_name: name as string,
           subject: subject as string,
           body_text: message as string,
+          body_html: notificationHtml(name as string, email as string, subject as string, message as string),
           direction: "inbound",
           is_read: false,
         }).select("id").single();

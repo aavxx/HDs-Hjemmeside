@@ -121,14 +121,18 @@ function EmailMessage({
   }, [defaultExpanded]);
 
   useEffect(() => {
-    if (expanded && iframeRef.current && email.body_html) {
-      const doc = iframeRef.current.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(email.body_html);
-        doc.close();
-      }
-    }
+    if (!expanded || !iframeRef.current || !email.body_html) return;
+    const iframe = iframeRef.current;
+    const doc = iframe.contentDocument;
+    if (!doc) return;
+    doc.open();
+    doc.write(email.body_html);
+    doc.close();
+    // Set height after write since onLoad doesn't fire for doc.write()
+    requestAnimationFrame(() => {
+      const h = iframe.contentDocument?.body?.scrollHeight;
+      if (h) iframe.style.height = h + 24 + "px";
+    });
   }, [expanded, email.body_html]);
 
   const isOutbound = email.direction === "outbound";
@@ -189,12 +193,6 @@ function EmailMessage({
               style={{ minHeight: 80 }}
               sandbox="allow-same-origin"
               title="email-body"
-              onLoad={() => {
-                if (iframeRef.current) {
-                  const h = iframeRef.current.contentDocument?.body?.scrollHeight;
-                  if (h) iframeRef.current.style.height = h + 16 + "px";
-                }
-              }}
             />
           ) : (
             <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
@@ -312,7 +310,10 @@ export default function PortalInbox() {
     setLoading(true);
     setError(null);
 
-    let query = supabase.from("portal_emails" as never).select("*");
+    let query = supabase
+      .from("portal_emails" as never)
+      .select("*")
+      .eq("account", selectedAccount);
 
     if (tab === "indbakke") {
       query = query.eq("direction", "inbound").is("deleted_at", null);

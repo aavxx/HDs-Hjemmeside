@@ -138,7 +138,7 @@ function EmailBubble({
       </div>
 
       <div
-        className={`max-w-xl rounded-2xl px-4 py-3 text-sm shadow-sm border ${
+        className={`max-w-2xl rounded-2xl px-4 py-3 text-sm shadow-sm border ${
           isOutbound
             ? "bg-[#07113C] text-white border-transparent"
             : "bg-white border-gray-100 text-gray-800"
@@ -407,7 +407,7 @@ export default function PortalInbox() {
 
         <div className="flex flex-1 min-h-0">
           <div
-            className="w-80 shrink-0 border-r border-gray-100 flex flex-col overflow-y-auto"
+            className="w-96 shrink-0 border-r border-gray-100 flex flex-col overflow-y-auto"
             style={{ backgroundColor: "#F9F9F9" }}
           >
             {loading ? (
@@ -472,7 +472,7 @@ export default function PortalInbox() {
                 Vælg en tråd for at læse
               </div>
             ) : (
-              <div className="flex flex-col gap-6 p-6 max-w-3xl w-full mx-auto">
+              <div className="flex flex-col gap-6 p-6 max-w-4xl w-full mx-auto">
                 <div>
                   <h2
                     className="text-lg font-semibold"

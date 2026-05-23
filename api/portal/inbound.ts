@@ -59,6 +59,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const fromEmail = extractEmail(from);
   const fromName = from.replace(/<[^>]+>/, "").trim().replace(/^["']|["']$/g, "") || fromEmail;
+
+  // Skip emails sent by our own accounts (already saved by api/send.ts or api/portal/reply.ts)
+  if (KNOWN_ACCOUNTS.includes(fromEmail)) {
+    console.log("[inbound] skipping self-sent email from", fromEmail);
+    return res.status(200).json({ ok: true, skipped: "self" });
+  }
+
   const account = resolveAccount(to);
 
   console.log(`[inbound] email_id=${emailId} from=${fromEmail} account=${account}`);

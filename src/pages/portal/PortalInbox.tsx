@@ -359,16 +359,27 @@ export default function PortalInbox() {
   };
 
   const handleTrash = async (emailId: string) => {
-    const token = sessionStorage.getItem("portal_token");
-    try {
-      await fetch("/api/portal/trash", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ id: emailId }),
-      });
-      await fetchEmails();
-    } catch {
-      // silently fail
+    // Optimistically remove the mail from the UI so it disappears in real time
+    const previous = emails;
+    setEmails((cur) => cur.filter((e) => e.id !== emailId));
+
+    // Soft-delete (or permanently delete if already in the trash) directly via
+    // the Supabase client — same approach as marking mails read above.
+    const { error: err } =
+      tab === "papirkurv"
+        ? await supabase
+            .from("portal_emails" as never)
+            .delete()
+            .eq("id", emailId)
+        : await supabase
+            .from("portal_emails" as never)
+            .update({ deleted_at: new Date().toISOString() } as never)
+            .eq("id", emailId);
+
+    if (err) {
+      console.error("[inbox] trash error:", err.message);
+      // Restore the mail if the database update failed
+      setEmails(previous);
     }
   };
 

@@ -3,7 +3,7 @@ import { createHash, randomBytes, createHmac } from "crypto";
 
 const PASSWORD_HASH =
   process.env.PORTAL_PASSWORD_HASH ??
-  "bf6bffb8b647cfb2a5cf5be9d6bc9e0a76b5b7bc696e4ce243c1303052e70a18";
+  "f7d04c875e910837e27f7fdc7574050de7c24d92ac99e1f9d6b1883c4b8cd291";
 const JWT_SECRET =
   process.env.PORTAL_JWT_SECRET ?? randomBytes(32).toString("hex");
 

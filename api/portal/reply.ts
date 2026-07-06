@@ -5,6 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "Henriette Duckert Keramik <keramiker@henrietteduckert.dk>";
 
+// Fallback to the project's public Supabase credentials so the sent reply is
+// saved to the portal even when runtime env vars aren't configured on Vercel.
+const SUPABASE_URL_FALLBACK = "https://ssamgdhgllrvkeofmico.supabase.co";
+const SUPABASE_ANON_FALLBACK =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzYW1nZGhnbGxydmtlb2ZtaWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODk1OTMsImV4cCI6MjA5NTQ2NTU5M30.x9FIqXW16RWiAKEiT_sQdB3draqMx57YnR6IXB9p1B8";
+
 function replyHtml(bodyText: string): string {
   const safe = bodyText
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -29,8 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { to, subject, bodyText, threadId, inReplyToId, account } = req.body ?? {};
   if (!to || !subject || !bodyText) return res.status(400).json({ ok: false, error: "Manglende felter" });
 
-  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
-  const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? SUPABASE_URL_FALLBACK;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? SUPABASE_ANON_FALLBACK;
 
   try {
     const html = replyHtml(bodyText as string);

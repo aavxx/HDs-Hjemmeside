@@ -4,6 +4,13 @@ import { createClient } from "@supabase/supabase-js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Fallback to the project's public Supabase credentials so the handler works
+// even when the runtime env vars aren't configured on Vercel. The anon key is
+// public (it also ships in the browser bundle) and RLS governs table access.
+const SUPABASE_URL_FALLBACK = "https://ssamgdhgllrvkeofmico.supabase.co";
+const SUPABASE_ANON_FALLBACK =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzYW1nZGhnbGxydmtlb2ZtaWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4ODk1OTMsImV4cCI6MjA5NTQ2NTU5M30.x9FIqXW16RWiAKEiT_sQdB3draqMx57YnR6IXB9p1B8";
+
 const KNOWN_ACCOUNTS = [
   "keramiker@henrietteduckert.dk",
   "henriette@henrietteduckert.dk",
@@ -70,12 +77,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   console.log(`[inbound] email_id=${emailId} from=${fromEmail} account=${account}`);
 
-  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
+  const supabaseUrl =
+    process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? SUPABASE_URL_FALLBACK;
   const supabaseKey =
     process.env.SUPABASE_ANON_KEY ??
     process.env.SUPABASE_SERVICE_ROLE_KEY ??
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-    "";
+    SUPABASE_ANON_FALLBACK;
 
   if (!supabaseUrl || !supabaseKey) {
     console.error("[inbound] missing Supabase env vars");

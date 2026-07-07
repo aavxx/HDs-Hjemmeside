@@ -252,7 +252,7 @@ export default function PortalOrders() {
   const filterOptions = [ALL_FILTER, ...STATUS_OPTIONS];
 
   const filterBtnClass = (f: string) =>
-    `px-3.5 py-1.5 text-sm rounded-full font-medium transition-colors ${
+    `px-3.5 py-1.5 text-sm rounded-full font-medium transition-colors whitespace-nowrap shrink-0 ${
       filterStatus === f
         ? "text-white"
         : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
@@ -260,16 +260,16 @@ export default function PortalOrders() {
 
   return (
     <PortalLayout>
-      <div className="p-8 w-full max-w-7xl">
+      <div className="p-4 sm:p-8 w-full max-w-7xl">
         <h1
-          className="text-2xl font-semibold mb-8"
+          className="text-2xl font-semibold mb-6 sm:mb-8"
           style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
         >
           Ordrer
         </h1>
 
         <div
-          className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 mb-10"
+          className="rounded-2xl border border-gray-100 bg-white shadow-sm p-4 sm:p-6 mb-8 sm:mb-10"
         >
           <h2
             className="text-base font-semibold mb-5"
@@ -368,7 +368,7 @@ export default function PortalOrders() {
                 </span>
               )}
             </h2>
-            <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1 overflow-x-auto max-w-full">
               {filterOptions.map((f) => (
                 <button
                   key={f}

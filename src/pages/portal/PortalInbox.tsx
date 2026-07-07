@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { da } from "date-fns/locale";
-import { Trash2, CornerUpLeft, Send, ChevronDown, RefreshCw } from "lucide-react";
+import { Trash2, CornerUpLeft, Send, ChevronDown, RefreshCw, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import PortalLayout from "@/components/portal/PortalLayout";
 
@@ -172,7 +172,7 @@ function EmailMessage({
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-xs text-gray-400 whitespace-nowrap">{dateStr}</span>
+          <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:inline">{dateStr}</span>
           <button
             onClick={handleTrash}
             disabled={trashing}
@@ -390,9 +390,13 @@ export default function PortalInbox() {
 
   return (
     <PortalLayout>
-      <div className="flex h-screen">
-        {/* Thread list */}
-        <div className="w-[340px] shrink-0 flex flex-col border-r border-gray-200 bg-white">
+      <div className="flex h-[calc(100dvh-4rem)] md:h-screen">
+        {/* Thread list — on mobile hidden while a thread is open */}
+        <div
+          className={`w-full md:w-[340px] shrink-0 flex-col border-r border-gray-200 bg-white ${
+            selectedThread ? "hidden md:flex" : "flex"
+          }`}
+        >
           {/* Toolbar */}
           <div className="px-4 pt-5 pb-3 border-b border-gray-100 flex flex-col gap-3">
             <div className="flex items-center justify-between">
@@ -493,8 +497,12 @@ export default function PortalInbox() {
           </div>
         </div>
 
-        {/* Reading pane */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F5F5F5]">
+        {/* Reading pane — on mobile only shown when a thread is open */}
+        <div
+          className={`flex-1 flex-col min-h-0 overflow-y-auto bg-[#F5F5F5] ${
+            selectedThread ? "flex" : "hidden md:flex"
+          }`}
+        >
           {!selectedThread ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-400">
               <span className="text-4xl">✉️</span>
@@ -503,21 +511,30 @@ export default function PortalInbox() {
           ) : (
             <div className="flex flex-col h-full">
               {/* Subject header */}
-              <div className="px-8 py-5 bg-white border-b border-gray-200 shrink-0">
-                <h2
-                  className="text-xl font-semibold"
-                  style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
+              <div className="px-4 md:px-8 py-4 md:py-5 bg-white border-b border-gray-200 shrink-0 flex items-start gap-3">
+                <button
+                  onClick={() => setSelectedThreadId(null)}
+                  title="Tilbage"
+                  className="md:hidden mt-0.5 p-1.5 -ml-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors shrink-0"
                 >
-                  {selectedThread.subject}
-                </h2>
-                <p className="text-xs text-gray-400 mt-1">
-                  {selectedThread.emails.length}{" "}
-                  {selectedThread.emails.length === 1 ? "besked" : "beskeder"}
-                </p>
+                  <ArrowLeft size={20} />
+                </button>
+                <div className="min-w-0">
+                  <h2
+                    className="text-lg md:text-xl font-semibold"
+                    style={{ fontFamily: "'Bricolage Grotesque', Georgia, serif", color: "#07113C" }}
+                  >
+                    {selectedThread.subject}
+                  </h2>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {selectedThread.emails.length}{" "}
+                    {selectedThread.emails.length === 1 ? "besked" : "beskeder"}
+                  </p>
+                </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 flex flex-col gap-3 px-8 py-6">
+              <div className="flex-1 flex flex-col gap-3 px-3 md:px-8 py-4 md:py-6">
                 {selectedThread.emails.map((email, idx) => (
                   <EmailMessage
                     key={email.id}

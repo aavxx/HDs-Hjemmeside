@@ -65,7 +65,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "#F9F9F9" }}>
       <aside
-        className="w-64 flex flex-col shrink-0 border-r border-gray-200"
+        className="w-64 hidden md:flex flex-col shrink-0 border-r border-gray-200"
         style={{ backgroundColor: "white" }}
       >
         <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200">
@@ -129,9 +129,58 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         {children}
       </main>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-50 h-16 border-t border-gray-200 bg-white flex items-stretch"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <NavLink
+          to="/portal"
+          end
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium"
+          style={({ isActive }) => ({ color: isActive ? NAVY : "#9CA3AF" })}
+        >
+          <LayoutDashboard size={20} />
+          Oversigt
+        </NavLink>
+
+        <NavLink
+          to="/portal/inbox"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium relative"
+          style={({ isActive }) => ({ color: isActive ? NAVY : "#9CA3AF" })}
+        >
+          <span className="relative">
+            <Inbox size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 flex items-center justify-center h-4 min-w-4 rounded-full bg-red-500 text-white text-[10px] font-semibold px-1">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </span>
+          Indbakke
+        </NavLink>
+
+        <NavLink
+          to="/portal/orders"
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium"
+          style={({ isActive }) => ({ color: isActive ? NAVY : "#9CA3AF" })}
+        >
+          <ShoppingBag size={20} />
+          Ordrer
+        </NavLink>
+
+        <button
+          onClick={handleLogout}
+          className="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-gray-400"
+        >
+          <LogOut size={20} />
+          Log ud
+        </button>
+      </nav>
     </div>
   );
 }

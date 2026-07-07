@@ -41,11 +41,11 @@ export default function PortalLogin({ onLogin }: { onLogin?: () => void }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center"
+      className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: "#F9F9F9" }}
     >
       <div
-        className="w-full max-w-sm rounded-2xl shadow-lg p-10"
+        className="w-full max-w-sm rounded-2xl shadow-lg p-6 sm:p-10"
         style={{ backgroundColor: "white" }}
       >
         <div className="flex flex-col items-center gap-6 mb-8">

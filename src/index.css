@@ -46,6 +46,40 @@
 }
 
 @layer base {
+  /* Mørkt tema. Bruges pt. kun af demoen (/demo), som sætter .dark på sin
+     egen rod – resten af sitet er upåvirket. */
+  .dark {
+    --background: 228 30% 8%;
+    --foreground: 233 18% 95%;
+
+    --card: 228 28% 12%;
+    --card-foreground: 233 18% 95%;
+
+    --popover: 228 28% 12%;
+    --popover-foreground: 233 18% 95%;
+
+    --primary: 233 18% 95%;
+    --primary-foreground: 228 80% 13%;
+
+    --secondary: 228 25% 20%;
+    --secondary-foreground: 233 18% 95%;
+
+    --muted: 228 22% 18%;
+    --muted-foreground: 228 15% 66%;
+
+    --accent: 228 25% 20%;
+    --accent-foreground: 233 18% 95%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 20% 22%;
+    --input: 228 20% 26%;
+    --ring: 233 18% 80%;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
@@ -158,4 +192,20 @@
 .link-underline:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+/* Respekter systemets ønske om mindre bevægelse. */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .stagger-children > *,
+  .img-reveal,
+  .line-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hover-lift {
+    transition: none;
+  }
 }

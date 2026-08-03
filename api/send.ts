@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
 import { classifySubmission, clientIp, rateLimit } from "./_spam";
+import { isConfigError, verifyTurnstile } from "./_turnstile";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -163,7 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const { name, email, subject, message, honeypot, elapsedMs } = req.body ?? {};
+  const { name, email, subject, message, honeypot, elapsedMs, turnstileToken } = req.body ?? {};
 
   if (!name || !email || !subject || !message) {
     return res.status(400).json({ ok: false, error: "Manglende felter" });
@@ -176,6 +177,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!rateLimit(ip)) {
     console.warn("[send] rate limited:", ip);
     return res.status(200).json({ ok: true });
+  }
+
+  // Cloudflare Turnstile: token'en fra widgetten skal godkendes af Cloudflare,
+  // før vi rører ved mail eller database. Se api/_turnstile.ts.
+  const turnstile = await verifyTurnstile(turnstileToken, ip);
+  if (!turnstile.ok) {
+    const codes = turnstile.errorCodes.join(", ") || "ukendt";
+    if (isConfigError(turnstile.errorCodes)) {
+      console.error(`[send] turnstile er ikke konfigureret korrekt (${codes})`);
+      return res.status(500).json({ ok: false, error: "Bot-beskyttelsen er ikke konfigureret. Prøv igen senere." });
+    }
+    console.warn(`[send] turnstile afviste henvendelsen (${codes}) fra ${email}`);
+    return res.status(400).json({ ok: false, error: "Bot-verifikationen mislykkedes. Prøv igen." });
   }
 
   const verdict = classifySubmission({

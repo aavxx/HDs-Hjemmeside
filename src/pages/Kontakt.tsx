@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ArrowRight, Loader2, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
+import Turnstile, { type TurnstileHandle } from "@/components/Turnstile";
 
 const Kontakt = () => {
   const [formData, setFormData] = useState({
@@ -13,9 +14,18 @@ const Kontakt = () => {
   const [honeypot, setHoneypot] = useState("");
   const openedAt = useRef(Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Engangs-token fra Cloudflare Turnstile. Verificeres server-side.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!turnstileToken) {
+      toast.error("Bekræft venligst, at du ikke er en robot.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -29,6 +39,7 @@ const Kontakt = () => {
           message: formData.besked.trim(),
           honeypot,
           elapsedMs: Date.now() - openedAt.current,
+          turnstileToken,
         }),
       });
 
@@ -43,6 +54,8 @@ const Kontakt = () => {
     } catch {
       toast.error("Der opstod en fejl. Prøv igen senere.");
     } finally {
+      // Token'en kan kun bruges én gang – hent en ny til næste forsøg.
+      turnstileRef.current?.reset();
       setIsSubmitting(false);
     }
   };
@@ -123,9 +136,10 @@ const Kontakt = () => {
               className="w-full border border-border bg-background text-foreground p-3"
               required
             />
+            <Turnstile ref={turnstileRef} onToken={setTurnstileToken} />
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken}
               className="w-full bg-foreground text-background p-3 hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {isSubmitting ? (

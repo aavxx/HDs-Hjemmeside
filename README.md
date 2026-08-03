@@ -60,6 +60,27 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Spamfilter på kontaktformularen
+
+`api/_spam.ts` filtrerer bot-henvendelser fra, før der sendes mails. Der er tre lag:
+
+1. **Honningkrukke** – et skjult felt i formularen (`hjemmeside`). Kun bots udfylder det.
+2. **Tidsmåling** – formularen sender, hvor lang tid der gik fra siden blev vist.
+   Under 2,5 sekunder er ikke et menneske.
+3. **Indholdspoint** – tilfældige bogstavstrenge, links, HTML, kendte spam-ord og
+   gmail-adresser med mange punktummer giver point. Fra 4 point regnes henvendelsen
+   som spam (`SPAM_THRESHOLD`).
+
+Derudover må samme IP højst sende 5 henvendelser i timen.
+
+Blokerede henvendelser får svaret "ok", så botten ikke kan prøve sig frem, men de
+sender ingen mails. De gemmes i stedet i portalens **papirkurv** med `[Spam]` i
+emnefeltet, så en fejlvurderet henvendelse kan findes frem igen.
+
+Bliver filteret for hårdt eller for blødt, justeres `SPAM_THRESHOLD` i
+`api/_spam.ts`. Testene i `api/_spam.test.ts` dækker både rigtige henvendelser og
+den spam, siden får i dag – kør dem med `npm test`.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.

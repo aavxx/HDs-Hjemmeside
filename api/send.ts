@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import { classifySubmission, clientIp, rateLimit } from "./_spam";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -49,7 +50,8 @@ function emailShell(cardContent: string): string {
 </html>`;
 }
 
-function autoReplyHtml(firstName: string): string {
+function autoReplyHtml(rawFirstName: string): string {
+  const firstName = escapeHtml(rawFirstName);
   const card = `
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
@@ -74,8 +76,15 @@ function autoReplyHtml(firstName: string): string {
   return emailShell(card);
 }
 
-function notificationHtml(name: string, email: string, subject: string, message: string): string {
-  const safeMessage = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br />");
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function notificationHtml(rawName: string, rawEmail: string, rawSubject: string, message: string): string {
+  const name = escapeHtml(rawName);
+  const email = escapeHtml(rawEmail);
+  const subject = escapeHtml(rawSubject);
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br />");
   const card = `
     <table width="100%" cellpadding="0" cellspacing="0">
       <tr>
@@ -112,18 +121,80 @@ function notificationHtml(name: string, email: string, subject: string, message:
   return emailShell(card);
 }
 
+/**
+ * Gemmer henvendelsen i portalens indbakke. Spam lægges direkte i
+ * papirkurven (deleted_at), så den ikke støjer, men stadig kan findes frem.
+ */
+async function saveToPortal(
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+  trashed: boolean,
+): Promise<void> {
+  const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? SUPABASE_URL_FALLBACK;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? SUPABASE_ANON_FALLBACK;
+  if (!supabaseUrl || !supabaseKey) return;
+
+  try {
+    const db = createClient(supabaseUrl, supabaseKey);
+    const { data: row, error: dbErr } = await db.from("portal_emails").insert({
+      account: "keramiker@henrietteduckert.dk",
+      from_email: email,
+      from_name: name,
+      subject: trashed ? `[Spam] ${subject}` : subject,
+      body_text: message,
+      body_html: notificationHtml(name, email, subject, message),
+      direction: "inbound",
+      is_read: trashed,
+      deleted_at: trashed ? new Date().toISOString() : null,
+    }).select("id").single();
+    if (dbErr) console.error("[send] db insert failed:", dbErr.message);
+    else {
+      // Set thread_id = own id (start of new thread)
+      await db.from("portal_emails").update({ thread_id: row.id }).eq("id", row.id);
+      console.log("[send] saved to portal_emails:", row.id);
+    }
+  } catch (e) { console.error("[send] db exception:", e); }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const { name, email, subject, message } = req.body ?? {};
+  const { name, email, subject, message, honeypot, elapsedMs } = req.body ?? {};
 
   if (!name || !email || !subject || !message) {
     return res.status(400).json({ ok: false, error: "Manglende felter" });
   }
 
   const firstName = (name as string).split(" ")[0];
+
+  // For mange henvendelser fra samme IP inden for en time.
+  const ip = clientIp(req.headers as Record<string, string | string[] | undefined>);
+  if (!rateLimit(ip)) {
+    console.warn("[send] rate limited:", ip);
+    return res.status(200).json({ ok: true });
+  }
+
+  const verdict = classifySubmission({
+    name: name as string,
+    email: email as string,
+    subject: subject as string,
+    message: message as string,
+    honeypot: honeypot as string | undefined,
+    elapsedMs: typeof elapsedMs === "number" ? elapsedMs : undefined,
+  });
+
+  if (verdict.spam) {
+    // Svar som om alt gik godt, så botten ikke kan prøve sig frem. Beskeden
+    // ender i portalens papirkurv i stedet for i indbakken og i indbakken hos
+    // Henriette.
+    console.warn(`[send] blokeret som spam (${verdict.score}: ${verdict.reasons.join(", ")}) fra ${email}`);
+    await saveToPortal(name as string, email as string, subject as string, message as string, true);
+    return res.status(200).json({ ok: true });
+  }
 
   try {
     const notif = await resend.emails.send({
@@ -146,29 +217,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log("[send] auto-reply to customer:", reply.data?.id ?? reply.error?.message);
 
     // Save to portal_emails + notify private email
-    const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? SUPABASE_URL_FALLBACK;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? SUPABASE_ANON_FALLBACK;
-    if (supabaseUrl && supabaseKey) {
-      try {
-        const db = createClient(supabaseUrl, supabaseKey);
-        const { data: row, error: dbErr } = await db.from("portal_emails").insert({
-          account: "keramiker@henrietteduckert.dk",
-          from_email: email as string,
-          from_name: name as string,
-          subject: subject as string,
-          body_text: message as string,
-          body_html: notificationHtml(name as string, email as string, subject as string, message as string),
-          direction: "inbound",
-          is_read: false,
-        }).select("id").single();
-        if (dbErr) console.error("[send] db insert failed:", dbErr.message);
-        else {
-          // Set thread_id = own id (start of new thread)
-          await db.from("portal_emails").update({ thread_id: row.id }).eq("id", row.id);
-          console.log("[send] saved to portal_emails:", row.id);
-        }
-      } catch (e) { console.error("[send] db exception:", e); }
-    }
+    await saveToPortal(name as string, email as string, subject as string, message as string, false);
 
     // Notify private email if configured
     const notifyEmail = process.env.NOTIFICATION_EMAIL;

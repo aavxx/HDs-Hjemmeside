@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowRight, Loader2, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +9,9 @@ const Kontakt = () => {
     emne: "",
     besked: "",
   });
+  // Skjult felt, som kun bots udfylder – se api/_spam.ts.
+  const [honeypot, setHoneypot] = useState("");
+  const openedAt = useRef(Date.now());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,6 +27,8 @@ const Kontakt = () => {
           email: formData.email.trim(),
           subject: formData.emne.trim(),
           message: formData.besked.trim(),
+          honeypot,
+          elapsedMs: Date.now() - openedAt.current,
         }),
       });
 
@@ -82,6 +87,19 @@ const Kontakt = () => {
               className="w-full border border-border bg-background text-foreground p-3"
               required
             />
+            {/* Honningkrukke: usynlig for besøgende, men bots udfylder den. */}
+            <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
+              <label htmlFor="hjemmeside">Lad dette felt stå tomt</label>
+              <input
+                id="hjemmeside"
+                name="hjemmeside"
+                type="text"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
             <input
               type="email"
               value={formData.email}

@@ -60,6 +60,30 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Bot-beskyttelse med Cloudflare Turnstile
+
+Kontaktformularen viser en Turnstile-widget (`src/components/Turnstile.tsx`).
+Widgetten giver en engangs-token, som sendes med formularen og verificeres
+server-side i `api/_turnstile.ts` mod Cloudflares `siteverify`-API, før der
+sendes mails. Uden en gyldig token afvises henvendelsen med en 400'er.
+
+Verifikationen **fejler lukket**: mangler token'en, er den brugt før, eller kan
+Cloudflare ikke nås, sendes der ingen mail.
+
+To nøgler skal være på plads:
+
+| Nøgle | Hvor | Offentlig? |
+| --- | --- | --- |
+| `VITE_TURNSTILE_SITE_KEY` | `.env` (bygges ind i frontenden) | Ja – står i HTML'en |
+| `TURNSTILE_SECRET_KEY` | Kun miljøvariabel i Vercel | **Nej – må aldrig committes** |
+
+Er `TURNSTILE_SECRET_KEY` ikke sat i Vercel, svarer `api/send.ts` med en 500'er
+og logger `[turnstile] TURNSTILE_SECRET_KEY mangler i miljøet`.
+
+Til lokal udvikling accepterer Cloudflare testnøglerne
+`1x00000000000000000000AA` (site) og `1x0000000000000000000000000000000AA`
+(secret), som altid består.
+
 ## Spamfilter på kontaktformularen
 
 `api/_spam.ts` filtrerer bot-henvendelser fra, før der sendes mails. Der er tre lag:

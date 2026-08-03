@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,6 +13,9 @@ import Privatlivspolitik from "./pages/Privatlivspolitik";
 import PortalDashboard from "./pages/portal/PortalDashboard";
 import PortalInbox from "./pages/portal/PortalInbox";
 import PortalOrders from "./pages/portal/PortalOrders";
+
+// Demoen hentes først, når nogen faktisk besøger /demo.
+const DemoRoutes = lazy(() => import("./demo/DemoRoutes"));
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,20 @@ const App = () => (
           <Route path="/portal" element={<PortalDashboard />} />
           <Route path="/portal/inbox" element={<PortalInbox />} />
           <Route path="/portal/orders" element={<PortalOrders />} />
+
+          {/* Demo af nyt site og ny portal. Kører udelukkende på opdigtede
+              data – se src/demo/data.ts. */}
+          <Route
+            path="/demo/*"
+            element={
+              <Suspense
+                fallback={<div className="grid min-h-screen place-items-center text-sm text-muted-foreground">Indlæser demo…</div>}
+              >
+                <DemoRoutes />
+              </Suspense>
+            }
+          />
+
           <Route
             path="*"
             element={

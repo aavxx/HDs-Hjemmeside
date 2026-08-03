@@ -60,6 +60,29 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Demo af nyt site og ny portal
+
+Et forslag til et redesignet site og en redesignet portal ligger side om side med
+det nuværende:
+
+| URL | Indhold |
+| --- | --- |
+| `/demo` | Forside, galleri med filtre, værkstedsside, kontaktformular |
+| `/demo/portal` | Overblik med graf, indbakke, ordretavle, kommandopalette (⌘K) |
+
+Alt ligger i `src/demo/` og er isoleret fra resten af koden. Vil man forkaste
+demoen igen, kan mappen slettes, og `/demo/*`-ruten fjernes fra `src/App.tsx`.
+
+**Demoen bruger udelukkende opdigtede data** (`src/demo/data.ts`). Den henter
+ingenting fra Supabase, og kontaktformularen kalder ikke `/api/send`. Det er med
+vilje: `/demo/portal` er offentligt tilgængelig uden login, så rigtige
+kundehenvendelser må ikke vises der. Skal demoen på et tidspunkt vise virkelige
+data, skal portalen først have server-side auth og RLS på plads.
+
+Demoen indlæses som sin egen chunk via `React.lazy`, så besøgende på det rigtige
+site ikke henter demoens kode. Siderne sætter `noindex, nofollow`, så de ikke
+havner i Google.
+
 ## Bot-beskyttelse med Cloudflare Turnstile
 
 Kontaktformularen viser en Turnstile-widget (`src/components/Turnstile.tsx`).

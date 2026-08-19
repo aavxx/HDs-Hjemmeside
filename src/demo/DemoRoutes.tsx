@@ -7,7 +7,7 @@ import { DemoProvider } from "./store";
 import DemoLayout from "./site/DemoLayout";
 import DemoHome from "./site/DemoHome";
 import DemoGallery from "./site/DemoGallery";
-import DemoWorkshop from "./site/DemoWorkshop";
+import DemoAbout from "./site/DemoAbout";
 import DemoContact from "./site/DemoContact";
 import DemoPortalLayout from "./portal/DemoPortalLayout";
 import DemoPortalDashboard from "./portal/DemoPortalDashboard";
@@ -27,7 +27,7 @@ export default function DemoRoutes() {
 
         <Route path="" element={site(<DemoHome />)} />
         <Route path="galleri" element={site(<DemoGallery />)} />
-        <Route path="vaerksted" element={site(<DemoWorkshop />)} />
+        <Route path="om-mig" element={site(<DemoAbout />)} />
         <Route path="kontakt" element={site(<DemoContact />)} />
 
         <Route path="*" element={<Navigate to="/demo" replace />} />

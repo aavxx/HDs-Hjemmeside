@@ -67,7 +67,7 @@ det nuværende:
 
 | URL | Indhold |
 | --- | --- |
-| `/demo` | Forside, galleri med filtre, værkstedsside, kontaktformular |
+| `/demo` | Forside, galleri (kommer snart), Om mig, kontaktformular |
 | `/demo/portal` | Overblik med graf, indbakke, ordretavle, kommandopalette (⌘K) |
 
 Alt ligger i `src/demo/` og er isoleret fra resten af koden. Vil man forkaste

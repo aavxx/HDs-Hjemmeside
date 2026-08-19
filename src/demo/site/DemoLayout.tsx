@@ -7,7 +7,7 @@ import DemoBadge, { useNoIndex } from "../DemoBadge";
 const navItems = [
   { path: "/demo", label: "Hjem", end: true },
   { path: "/demo/galleri", label: "Galleri", end: false },
-  { path: "/demo/vaerksted", label: "Værkstedet", end: false },
+  { path: "/demo/om-mig", label: "Om mig", end: false },
   { path: "/demo/kontakt", label: "Kontakt", end: false },
 ];
 
@@ -117,9 +117,6 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
               </a>
               <Link to="/privatlivspolitik" className="link-underline hover:text-foreground">
                 Privatlivspolitik
-              </Link>
-              <Link to="/demo/portal" className="link-underline hover:text-foreground">
-                Portal
               </Link>
             </div>
           </div>

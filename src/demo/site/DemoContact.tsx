@@ -20,12 +20,10 @@ export default function DemoContact() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileHandle>(null);
 
-  // Forudfyld emnet, når man kommer fra galleriet eller en workshop-knap.
+  // Forudfyld emnet, hvis det følger med i linket.
   useEffect(() => {
-    const stykke = params.get("stykke");
     const emne = params.get("emne");
-    if (stykke) setFormData((f) => ({ ...f, emne: `Forespørgsel: ${stykke}` }));
-    else if (emne) setFormData((f) => ({ ...f, emne }));
+    if (emne) setFormData((f) => ({ ...f, emne }));
   }, [params]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,8 +49,8 @@ export default function DemoContact() {
           </div>
 
           <p className="max-w-md leading-relaxed text-muted-foreground">
-            Spørgsmål om et bestemt stykke, en specialbestilling eller en workshop? Skriv endelig — der bliver
-            svaret inden for et par hverdage.
+            Du er velkommen til at skrive, hvis du har spørgsmål til et værk, gerne vil bestille noget, eller
+            vil høre om en udstilling. Jeg svarer, så snart jeg kan.
           </p>
 
           <div className="space-y-5 text-sm">
